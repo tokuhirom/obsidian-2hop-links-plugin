@@ -1,4 +1,4 @@
-import {App, ItemView, Plugin, PluginSettingTab, Setting, WorkspaceLeaf} from 'obsidian';
+import {App, ItemView, Plugin, PluginSettingTab, Setting, TFile, WorkspaceLeaf} from 'obsidian';
 
 interface StructuredLinksPluginSettings {
 	mySetting: string;
@@ -164,7 +164,11 @@ class StructuredLinksView extends ItemView {
 			if (p2.links != null) {
 				p2.links.forEach(it => {
 					console.log(it)
-					this.createBox(linksContainer, it.displayText, 'b')
+					// TODO how do i get path?
+					console.log(`CALC!!! link=${it.link} displayText=${it.displayText}`)
+					const file = this.app.metadataCache.getFirstLinkpathDest(it.link, '')
+					const path = file != null ? file.path : null // null if the file doesn't created
+					this.createBox(linksContainer, 'forward', path, it.displayText, 'b')
 				})
 			}
 		}
@@ -174,7 +178,7 @@ class StructuredLinksView extends ItemView {
 		const backlinks = this.getBackLinks(activeFile.path)
 		console.log(`backlinks: ${backlinks.length}`)
 		backlinks.forEach(it => {
-			this.createBox(linksContainer, it.path, it.title)
+			this.createBox(linksContainer, 'back', it.path, it.title, 'preview')
 		})
 
 		// resolved links is:
@@ -182,7 +186,6 @@ class StructuredLinksView extends ItemView {
 	}
 
 	getBackLinks(name: string):FileEntity[] {
-		this.app.metadataCache.
 		const resolvedLinks: Record<string, Record<string, number>> = this.app.metadataCache.resolvedLinks;
 		// this.app.metadataCache.resolvedLinks
 		let backLinksDeduper: Record<string, boolean> = {} // use Record for de-dup
@@ -208,7 +211,7 @@ class StructuredLinksView extends ItemView {
 	}
 
 
-	private createBox(container: HTMLElement, title: string, preview: string) {
+	private createBox(container: HTMLElement, direction: string, path: string, title: string, preview: string) {
 		const box = container.createDiv({cls: 'box'})
 		const titleEl = box.createDiv({cls: 'title'})
 		titleEl.textContent = title
@@ -216,6 +219,21 @@ class StructuredLinksView extends ItemView {
 		previewEl.textContent = preview
 		box.appendChild(titleEl)
 		box.appendChild(previewEl)
+		const self = this
+		// self.app.workspace.openLinkText(title, path)
+		const directionHolder = direction
+		const pathHolder = path
+		const titleHolder = title
+		box.setAttribute('x-path', path)
+		box.addEventListener('click', async e => {
+			console.log(`OPEN ${e.srcElement} target=${e.target} direction=${directionHolder} path=${pathHolder}, title=${titleHolder}`)
+			// const file = this.app.vault.getAbstractFileByPath(path) as TFile;
+			// const leaf = this.app.workspace.getUnpinnedLeaf()
+			// await leaf.openFile(file)
+			this.app.workspace.openLinkText(titleHolder, pathHolder)
+			// this.app.workspace.splitActiveLeaf().openFile(file);
+			return false;
+		}, false)
 		// preview に画像を対応させる like scrapbox
 	}
 
