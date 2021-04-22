@@ -137,7 +137,7 @@ class StructuredLinksView extends ItemView {
 
 		console.log(`activeFile`)
 		console.log(activeFile)
-		console.log(`activeFile.name=${activeFile.name}`)
+		console.log(`activeFile.name=${activeFile.name} ${activeFile.basename} ${activeFile.path}`)
 
 		const container = dom.createDiv({
 			cls: 'container'
@@ -155,21 +155,58 @@ class StructuredLinksView extends ItemView {
 			'cls': 'links'
 		});
 
+		// forward links
 		let p2 = this.app.metadataCache.getFileCache(activeFile)
 		if (p2 == null) {
 			console.log("Missing p2")
 		} else {
 			console.log(p2.links)
-			p2.links.forEach(it => {
-				console.log(it)
-				this.createBox(linksContainer, it.displayText, 'b')
-			})
+			if (p2.links != null) {
+				p2.links.forEach(it => {
+					console.log(it)
+					this.createBox(linksContainer, it.displayText, 'b')
+				})
+			}
 		}
 
-		container.appendChild(linksContainer)
+		// back links
 		// console.log(`frontmatter={fileCache.frontmatter}`)
-		// this.app.metadataCache.resolvedLinks
+		const backlinks = this.getBackLinks(activeFile.path)
+		console.log(`backlinks: ${backlinks.length}`)
+		backlinks.forEach(it => {
+			this.createBox(linksContainer, it.path, it.title)
+		})
+
+		// resolved links is:
+		container.appendChild(linksContainer)
 	}
+
+	getBackLinks(name: string):FileEntity[] {
+		this.app.metadataCache.
+		const resolvedLinks: Record<string, Record<string, number>> = this.app.metadataCache.resolvedLinks;
+		// this.app.metadataCache.resolvedLinks
+		let backLinksDeduper: Record<string, boolean> = {} // use Record for de-dup
+		console.log(`getBackLinksTarget=${name}`)
+		let i= 0;
+		for (let src of Object.keys(resolvedLinks)) {
+			// console.log(`k=${k}`)
+			for (let dest of Object.keys(resolvedLinks[src])) {
+				i+=1
+				if (dest.startsWith('アニメ')) {
+					console.log(`HIT!! -- src=${src} dest=${dest}`)
+				}
+				// if (i>10) {
+				// 	return [] //DEBUG
+				// }
+				if (dest == name) {
+					console.log(`Backlinks HIT!: ${src}`)
+					backLinksDeduper[src] = true
+				}
+			}
+		}
+		return Object.keys(backLinksDeduper).map(path => FileEntity.fromPath(path))
+	}
+
 
 	private createBox(container: HTMLElement, title: string, preview: string) {
 		const box = container.createDiv({cls: 'box'})
@@ -184,5 +221,25 @@ class StructuredLinksView extends ItemView {
 
 	private update() {
 		this.render()
+		return true
+	}
+}
+
+class FileEntity {
+	public path: string;
+	public title: string;
+
+	constructor(path: string, title: string) {
+		this.path = path;
+		this.title = title;
+	}
+
+	static fromPath(path: string): FileEntity {
+		const title = this.pathToTitle(path)
+		return new FileEntity(path, title)
+	}
+
+	private static pathToTitle(path: string) {
+		return path.replace(/^.*\//, '').replace(/\.md$/, '')
 	}
 }
