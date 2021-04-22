@@ -1,18 +1,32 @@
 /* Sets all the text color to red! */
 body {
 }
-.box {
+.backlinks {
+    margin-top: 80px;
+}
+.backlinks:after {
+    content: "";
+    display: block;
+    clear: both;
+}
+.structured-link-box {
+    box-sizing: border-box;
     border: 1px solid #224433;
     float: left;
     padding: 3px;
     margin: 8px;
     height: 162px;
     width: 178px;
+    color: #224433;
+    background-color: antiquewhite;
+    border-radius: 4px;
 }
-.title {
-    max-height: 30%;
+.structured-link-title {
     display: -webkit-box;
     overflow: hidden;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
+}
+.structured-link-preview {
+    color: #224433;
 }

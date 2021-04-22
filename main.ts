@@ -1,4 +1,14 @@
-import {App, ItemView, Plugin, PluginSettingTab, Setting, TFile, WorkspaceLeaf} from 'obsidian';
+import {
+	App,
+	ItemView,
+	MarkdownPreviewView,
+	MarkdownView,
+	Plugin,
+	PluginSettingTab,
+	Setting,
+	TFile,
+	WorkspaceLeaf
+} from 'obsidian';
 
 interface StructuredLinksPluginSettings {
 	mySetting: string;
@@ -30,6 +40,169 @@ export default class StructuredLinksPlugin extends Plugin {
 
 		this.app.workspace.onLayoutReady(this.initLeaf.bind(this))
 		console.log('loaded obsidian-structured-links plugin');
+
+		this.app.workspace.on('file-open', async (file) => {
+			const activeLeaf = this.app.workspace.activeLeaf
+
+			if (!activeLeaf) { return }
+
+			const activeView = activeLeaf.view
+
+			const isAllowedView = activeView instanceof MarkdownView || activeView instanceof MarkdownPreviewView
+
+			const isBacklinkView = activeView.getState().hasOwnProperty('backlinkCollapsed')
+
+			// if (!this.hasOpenedMdFiles) {
+			// 	this.clear()
+			// 	return
+			// }
+
+			if (isBacklinkView) {
+				return
+			}
+
+			if (!isAllowedView) {
+				// this.clear()
+				return
+			}
+
+			// activeView.containerEl.createDiv({
+			// 	cls: 'structured-links-container'
+			// }, el => {
+			// 	el.textContent = 'hello'
+			// })
+
+			// if (!this.isPluginLeafExists) {
+			// 	this.clear()
+			// 	this.createPluginLeaf()
+			// }
+			//
+			// const { prBacklinkLeaf, mdBacklinkLeaf } = this.data
+
+			// const mdLeafEl = mdBacklinkLeaf.view.containerEl.parentNode as HTMLElement
+			// const prLeafEl = prBacklinkLeaf.view.containerEl.parentNode as HTMLElement
+
+			// markdown editing view element
+			const mdEl =
+					activeView.containerEl.querySelector('.mod-active .markdown-source-view .CodeMirror-lines')
+					|| document.querySelector(".mod-active .markdown-source-view")
+			// preview view element
+			const prEl = activeView.containerEl.querySelector('.mod-active .markdown-preview-view')
+
+			const backlinksContainer: HTMLElement = mdEl.querySelector('.backlinks') || mdEl.createDiv({
+				cls: 'backlinks'
+			})
+			backlinksContainer.empty()
+
+
+			// Open the editing file
+			let activeFile: TFile = this.app.workspace.getActiveFile();
+			if (activeFile == null) {
+				return // Currently focusing window is not related to a file.
+			}
+
+			backlinksContainer.createDiv({
+				text: new Date() + activeFile.name
+			});
+
+			// forward links
+			let activeFileCache = this.app.metadataCache.getFileCache(activeFile)
+			if (activeFileCache == null) {
+				// sometime, we can't get metadata cache from obsidian.
+				console.log("Missing activeFileCache")
+			} else {
+				console.log(activeFileCache.links)
+				if (activeFileCache.links != null) {
+					activeFileCache.links.forEach(it => {
+						console.log(it)
+						// TODO how do i get path?
+						console.log(`CALC!!! link=${it.link} displayText=${it.displayText}`)
+						const file = this.app.metadataCache.getFirstLinkpathDest(it.link, '')
+						const path = file != null ? file.path : null // null if the file doesn't created
+						this.createBox(backlinksContainer, 'forward', path, it.displayText, 'b')
+					})
+				}
+			}
+
+			// back links
+			// console.log(`frontmatter={fileCache.frontmatter}`)
+			let app: App = this.app
+			const backlinks = getBackLinks(this.app, activeFile.path)
+			console.log(`backlinks: ${backlinks.length}`)
+			backlinks.forEach(it => {
+				this.createBox(backlinksContainer, 'back', it.path, it.title, 'preview')
+			})
+
+
+			// mdEl?.appendChild(mdLeafEl)
+			// prEl?.appendChild(prLeafEl)
+
+			// await this.updateBacklinks(file)
+			// @ts-ignore
+			// await this.saveData({ ids: [mdBacklinkLeaf.id, prBacklinkLeaf.id] })
+		})
+	}
+
+	private createBox(container: HTMLElement, direction: string, path: string, title: string, preview: string) {
+		const box = container.createDiv({cls: 'structured-link-box'})
+		const titleEl = document.createElement('div')
+		titleEl.className = 'structured-link-title'
+		titleEl.textContent = title
+		const previewEl = document.createElement('div')
+		previewEl.className = 'structured-link-preview'
+		previewEl.textContent = title
+		box.appendChild(titleEl)
+		box.appendChild(previewEl)
+		// self.app.workspace.openLinkText(title, path)
+
+		box.setAttribute('data-direction', direction)
+		box.setAttribute('data-title', title)
+		box.setAttribute('data-path', path)
+		// console.log(box)
+		box.addEventListener('click', async e => {
+			console.log("clickclickclickclickclickclick! ")
+			e.stopPropagation()
+
+			let el = (e.target as HTMLElement)
+			do {
+				if (el.className == 'structured-link-box') {
+
+					console.log("************((((((((((((((((((((((((((((((((((((((((((")
+					const path = el.getAttribute('data-path')
+					const title = el.getAttribute('data-title')
+					if (path == null || path == 'null') {
+						if (!confirm(`Create new file: ${title}?`)) {
+							console.log("Canceled!!")
+							return false
+						} else {
+							console.log("let's create new file!")
+						}
+					}
+					await this.app.workspace.openLinkText(title, path)
+					return false;
+				}
+				el = el.parentElement
+			} while (el != null);
+			return true;
+		}, true)
+
+		// box.addEventListener('click', async e => {
+		// 	e.stopPropagation()
+		// 	e.preventDefault()
+		//
+		// 	const xPath =(e.target as HTMLElement).getAttribute('x-path')
+		// 	const txPath =(e.srcElement as HTMLElement).getAttribute('x-path')
+		// 	console.log(`**** OPEN xpath=${xPath} txpath=${txPath} ${e.srcElement} target=${e.target} direction=${directionHolder} path=${pathHolder}, title=${titleHolder}`)
+		// 	console.log((e.target as HTMLElement).innerHTML)
+		// 	console.log((e.srcElement as HTMLElement).innerHTML)
+		// 	// const file = this.app.vault.getAbstractFileByPath(path) as TFile;
+		// 	// const leaf = this.app.workspace.getUnpinnedLeaf()
+		// 	// await leaf.openFile(file)
+		// 	await this.app.workspace.openLinkText(titleHolder, pathHolder)
+		// 	// this.app.workspace.splitActiveLeaf().openFile(file);
+		// 	return false;
+		// }, false)
+		// preview に画像を対応させる like scrapbox
 	}
 
 	onunload() {
@@ -40,7 +213,6 @@ export default class StructuredLinksPlugin extends Plugin {
 		if (this.app.workspace.getLeavesOfType(VIEW_TYPE_STRUCTURED_LINKS).length) {
 			let view = this.app.workspace.getLeavesOfType(VIEW_TYPE_STRUCTURED_LINKS)[0]
 			this.view = (view.view as StructuredLinksView)
-			this.view.render()
 			return;
 		}
 
@@ -87,6 +259,31 @@ class StructuredLinksSettingTab extends PluginSettingTab {
 	}
 }
 
+function getBackLinks(app: App, name: string):FileEntity[] {
+	const resolvedLinks: Record<string, Record<string, number>> = app.metadataCache.resolvedLinks;
+	// this.app.metadataCache.resolvedLinks
+	let backLinksDeduper: Record<string, boolean> = {} // use Record for de-dup
+	console.log(`getBackLinksTarget=${name}`)
+	let i= 0;
+	for (let src of Object.keys(resolvedLinks)) {
+		// console.log(`k=${k}`)
+		for (let dest of Object.keys(resolvedLinks[src])) {
+			i+=1
+			if (dest.startsWith('アニメ')) {
+				console.log(`HIT!! -- src=${src} dest=${dest}`)
+			}
+			// if (i>10) {
+			// 	return [] //DEBUG
+			// }
+			if (dest == name) {
+				console.log(`Backlinks HIT!: ${src}`)
+				backLinksDeduper[src] = true
+			}
+		}
+	}
+	return Object.keys(backLinksDeduper).map(path => FileEntity.fromPath(path))
+}
+
 class StructuredLinksView extends ItemView {
 
 	constructor(leaf: WorkspaceLeaf) {
@@ -113,133 +310,6 @@ class StructuredLinksView extends ItemView {
 
 	async onOpen(): Promise<void> {
 		console.log('opening structured!')
-		this.render()
-	}
-
-	public load(): void {
-		super.load();
-		console.log("StructuredLinksView.LOAD!")
-		this.registerEvent(this.app.workspace.on('file-open', this.update.bind(this)));
-	}
-
-	render() {
-		let activeFile = this.app.workspace.getActiveFile();
-		if (activeFile == null) {
-			return // Currently focusing window is not related to a file.
-		}
-
-
-		const dom = (this as any).contentEl as HTMLElement;
-		dom.empty()
-
-		console.log("HAHAHA?!?")
-		console.log(`HAHAHA? this=${this}`)
-
-		console.log(`activeFile`)
-		console.log(activeFile)
-		console.log(`activeFile.name=${activeFile.name} ${activeFile.basename} ${activeFile.path}`)
-
-		const container = dom.createDiv({
-			cls: 'container'
-		})
-
-		container.createEl('div', {
-			text: 'hahahahaha!!?? ' + new Date() + activeFile.name
-		});
-
-		// let fileCache = this.app.metadataCache.getFileCache(activeFile);
-		// let p2 = this.app.metadataCache.getCache(activeFile.name)
-
-		// show links
-		const linksContainer = container.createDiv({
-			'cls': 'links'
-		});
-
-		// forward links
-		let p2 = this.app.metadataCache.getFileCache(activeFile)
-		if (p2 == null) {
-			console.log("Missing p2")
-		} else {
-			console.log(p2.links)
-			if (p2.links != null) {
-				p2.links.forEach(it => {
-					console.log(it)
-					// TODO how do i get path?
-					console.log(`CALC!!! link=${it.link} displayText=${it.displayText}`)
-					const file = this.app.metadataCache.getFirstLinkpathDest(it.link, '')
-					const path = file != null ? file.path : null // null if the file doesn't created
-					this.createBox(linksContainer, 'forward', path, it.displayText, 'b')
-				})
-			}
-		}
-
-		// back links
-		// console.log(`frontmatter={fileCache.frontmatter}`)
-		const backlinks = this.getBackLinks(activeFile.path)
-		console.log(`backlinks: ${backlinks.length}`)
-		backlinks.forEach(it => {
-			this.createBox(linksContainer, 'back', it.path, it.title, 'preview')
-		})
-
-		// resolved links is:
-		container.appendChild(linksContainer)
-	}
-
-	getBackLinks(name: string):FileEntity[] {
-		const resolvedLinks: Record<string, Record<string, number>> = this.app.metadataCache.resolvedLinks;
-		// this.app.metadataCache.resolvedLinks
-		let backLinksDeduper: Record<string, boolean> = {} // use Record for de-dup
-		console.log(`getBackLinksTarget=${name}`)
-		let i= 0;
-		for (let src of Object.keys(resolvedLinks)) {
-			// console.log(`k=${k}`)
-			for (let dest of Object.keys(resolvedLinks[src])) {
-				i+=1
-				if (dest.startsWith('アニメ')) {
-					console.log(`HIT!! -- src=${src} dest=${dest}`)
-				}
-				// if (i>10) {
-				// 	return [] //DEBUG
-				// }
-				if (dest == name) {
-					console.log(`Backlinks HIT!: ${src}`)
-					backLinksDeduper[src] = true
-				}
-			}
-		}
-		return Object.keys(backLinksDeduper).map(path => FileEntity.fromPath(path))
-	}
-
-
-	private createBox(container: HTMLElement, direction: string, path: string, title: string, preview: string) {
-		const box = container.createDiv({cls: 'box'})
-		const titleEl = box.createDiv({cls: 'title'})
-		titleEl.textContent = title
-		const previewEl = box.createDiv({cls: 'preview'})
-		previewEl.textContent = preview
-		box.appendChild(titleEl)
-		box.appendChild(previewEl)
-		const self = this
-		// self.app.workspace.openLinkText(title, path)
-		const directionHolder = direction
-		const pathHolder = path
-		const titleHolder = title
-		box.setAttribute('x-path', path)
-		box.addEventListener('click', async e => {
-			console.log(`OPEN ${e.srcElement} target=${e.target} direction=${directionHolder} path=${pathHolder}, title=${titleHolder}`)
-			// const file = this.app.vault.getAbstractFileByPath(path) as TFile;
-			// const leaf = this.app.workspace.getUnpinnedLeaf()
-			// await leaf.openFile(file)
-			this.app.workspace.openLinkText(titleHolder, pathHolder)
-			// this.app.workspace.splitActiveLeaf().openFile(file);
-			return false;
-		}, false)
-		// preview に画像を対応させる like scrapbox
-	}
-
-	private update() {
-		this.render()
-		return true
 	}
 }
 
