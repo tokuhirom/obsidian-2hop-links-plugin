@@ -1,4 +1,18 @@
 /* Sets all the text color to red! */
 body {
-    color: red;
+}
+.box {
+    border: 1px solid #224433;
+    float: left;
+    padding: 3px;
+    margin: 8px;
+    height: 162px;
+    width: 178px;
+}
+.title {
+    max-height: 30%;
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
 }

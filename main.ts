@@ -1,60 +1,52 @@
-import { App, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
+import {App, ItemView, Plugin, PluginSettingTab, Setting, WorkspaceLeaf} from 'obsidian';
 
-interface MyPluginSettings {
+interface StructuredLinksPluginSettings {
 	mySetting: string;
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
+const DEFAULT_SETTINGS: StructuredLinksPluginSettings = {
 	mySetting: 'default'
 }
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+const VIEW_TYPE_STRUCTURED_LINKS = 'tokuhirom.obsidian-structured-links-plugin';
+
+export default class StructuredLinksPlugin extends Plugin {
+	settings: StructuredLinksPluginSettings;
+	view: StructuredLinksView;
 
 	async onload() {
-		console.log('loading plugin');
+		console.log('------ loading obsidian-structured-links plugin');
 
 		await this.loadSettings();
+		console.log(this.registerView);
 
-		this.addRibbonIcon('dice', 'Sample Plugin', () => {
-			new Notice('This is a notice!');
+		this.addSettingTab(new StructuredLinksSettingTab(this.app, this));
+
+		this.registerView(VIEW_TYPE_STRUCTURED_LINKS, (leaf) => {
+			console.log("Creating StructuredLinksView~~")
+			this.view = new StructuredLinksView(leaf);
+			return this.view;
 		});
 
-		this.addStatusBarItem().setText('Status Bar Text');
-
-		this.addCommand({
-			id: 'open-sample-modal',
-			name: 'Open Sample Modal',
-			// callback: () => {
-			// 	console.log('Simple Callback');
-			// },
-			checkCallback: (checking: boolean) => {
-				let leaf = this.app.workspace.activeLeaf;
-				if (leaf) {
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
-					return true;
-				}
-				return false;
-			}
-		});
-
-		this.addSettingTab(new SampleSettingTab(this.app, this));
-
-		this.registerCodeMirror((cm: CodeMirror.Editor) => {
-			console.log('codemirror', cm);
-		});
-
-		this.registerDomEvent(document, 'click', (evt: MouseEvent) => {
-			console.log('click', evt);
-		});
-
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
+		this.app.workspace.onLayoutReady(this.initLeaf.bind(this))
+		console.log('loaded obsidian-structured-links plugin');
 	}
 
 	onunload() {
 		console.log('unloading plugin');
+	}
+
+	initLeaf(): void {
+		if (this.app.workspace.getLeavesOfType(VIEW_TYPE_STRUCTURED_LINKS).length) {
+			let view = this.app.workspace.getLeavesOfType(VIEW_TYPE_STRUCTURED_LINKS)[0]
+			this.view = (view.view as StructuredLinksView)
+			this.view.render()
+			return;
+		}
+
+		this.app.workspace.getRightLeaf(false).setViewState({
+			type: VIEW_TYPE_STRUCTURED_LINKS,
+		});
 	}
 
 	async loadSettings() {
@@ -66,26 +58,10 @@ export default class MyPlugin extends Plugin {
 	}
 }
 
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
+class StructuredLinksSettingTab extends PluginSettingTab {
+	private plugin: StructuredLinksPlugin;
 
-	onOpen() {
-		let {contentEl} = this;
-		contentEl.setText('Woah!');
-	}
-
-	onClose() {
-		let {contentEl} = this;
-		contentEl.empty();
-	}
-}
-
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
-
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: StructuredLinksPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -108,5 +84,105 @@ class SampleSettingTab extends PluginSettingTab {
 					this.plugin.settings.mySetting = value;
 					await this.plugin.saveSettings();
 				}));
+	}
+}
+
+class StructuredLinksView extends ItemView {
+
+	constructor(leaf: WorkspaceLeaf) {
+		super(leaf);
+		console.log("Created StructuredLinksView")
+	}
+
+	getDisplayText(): string {
+		// console.log("StructuredLinksView.getDisplayText")
+		return "Structured Links";
+	}
+
+	getViewType(): string {
+		// console.log("StructuredLinksView.getViewType")
+		return VIEW_TYPE_STRUCTURED_LINKS;
+	}
+	getIcon(): string {
+		return 'search';
+	}
+
+	onClose(): Promise<void> {
+		return Promise.resolve();
+	}
+
+	async onOpen(): Promise<void> {
+		console.log('opening structured!')
+		this.render()
+	}
+
+	public load(): void {
+		super.load();
+		console.log("StructuredLinksView.LOAD!")
+		this.registerEvent(this.app.workspace.on('file-open', this.update.bind(this)));
+	}
+
+	render() {
+		let activeFile = this.app.workspace.getActiveFile();
+		if (activeFile == null) {
+			return // Currently focusing window is not related to a file.
+		}
+
+
+		const dom = (this as any).contentEl as HTMLElement;
+		dom.empty()
+
+		console.log("HAHAHA?!?")
+		console.log(`HAHAHA? this=${this}`)
+
+		console.log(`activeFile`)
+		console.log(activeFile)
+		console.log(`activeFile.name=${activeFile.name}`)
+
+		const container = dom.createDiv({
+			cls: 'container'
+		})
+
+		container.createEl('div', {
+			text: 'hahahahaha!!?? ' + new Date() + activeFile.name
+		});
+
+		// let fileCache = this.app.metadataCache.getFileCache(activeFile);
+		// let p2 = this.app.metadataCache.getCache(activeFile.name)
+
+		// show links
+		const linksContainer = container.createDiv({
+			'cls': 'links'
+		});
+
+		let p2 = this.app.metadataCache.getFileCache(activeFile)
+		if (p2 == null) {
+			console.log("Missing p2")
+		} else {
+			console.log(p2.links)
+			p2.links.forEach(it => {
+				console.log(it)
+				this.createBox(linksContainer, it.displayText, 'b')
+			})
+		}
+
+		container.appendChild(linksContainer)
+		// console.log(`frontmatter={fileCache.frontmatter}`)
+		// this.app.metadataCache.resolvedLinks
+	}
+
+	private createBox(container: HTMLElement, title: string, preview: string) {
+		const box = container.createDiv({cls: 'box'})
+		const titleEl = box.createDiv({cls: 'title'})
+		titleEl.textContent = title
+		const previewEl = box.createDiv({cls: 'preview'})
+		previewEl.textContent = preview
+		box.appendChild(titleEl)
+		box.appendChild(previewEl)
+		// preview に画像を対応させる like scrapbox
+	}
+
+	private update() {
+		this.render()
 	}
 }
