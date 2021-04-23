@@ -3,12 +3,14 @@
     "baseUrl": ".",
     "inlineSourceMap": true,
     "inlineSources": true,
+    "jsx": "react",
     "module": "ESNext",
     "target": "es6",
     "allowJs": true,
     "noImplicitAny": true,
     "moduleResolution": "node",
     "importHelpers": true,
+    "allowSyntheticDefaultImports": true,
     "lib": [
       "dom",
       "es5",
@@ -16,7 +18,5 @@
       "es2015"
     ]
   },
-  "include": [
-    "**/*.ts"
-  ]
+  "include": ["**/*.ts", "**/*.tsx"]
 }
