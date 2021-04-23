@@ -41,106 +41,110 @@ export default class StructuredLinksPlugin extends Plugin {
 		this.app.workspace.onLayoutReady(this.initLeaf.bind(this))
 		console.log('loaded obsidian-structured-links plugin');
 
-		this.app.workspace.on('file-open', async (file) => {
-			const activeLeaf = this.app.workspace.activeLeaf
+		this.app.workspace.on('file-open', this.renderBacklinks.bind(this))
+		this.app.vault.on("modify", this.renderBacklinks.bind(this))
+	}
 
-			if (!activeLeaf) { return }
+	private renderBacklinks() {
+		const activeLeaf = this.app.workspace.activeLeaf
 
-			const activeView = activeLeaf.view
+		if (!activeLeaf) {
+			return
+		}
 
-			const isAllowedView = activeView instanceof MarkdownView || activeView instanceof MarkdownPreviewView
+		const activeView = activeLeaf.view
 
-			const isBacklinkView = activeView.getState().hasOwnProperty('backlinkCollapsed')
+		const isAllowedView = activeView instanceof MarkdownView || activeView instanceof MarkdownPreviewView
 
-			// if (!this.hasOpenedMdFiles) {
-			// 	this.clear()
-			// 	return
-			// }
+		const isBacklinkView = activeView.getState().hasOwnProperty('backlinkCollapsed')
 
-			if (isBacklinkView) {
-				return
-			}
+		// if (!this.hasOpenedMdFiles) {
+		// 	this.clear()
+		// 	return
+		// }
 
-			if (!isAllowedView) {
-				// this.clear()
-				return
-			}
+		if (isBacklinkView) {
+			return
+		}
 
-			// activeView.containerEl.createDiv({
-			// 	cls: 'structured-links-container'
-			// }, el => {
-			// 	el.textContent = 'hello'
-			// })
+		if (!isAllowedView) {
+			// this.clear()
+			return
+		}
 
-			// if (!this.isPluginLeafExists) {
-			// 	this.clear()
-			// 	this.createPluginLeaf()
-			// }
-			//
-			// const { prBacklinkLeaf, mdBacklinkLeaf } = this.data
+		// activeView.containerEl.createDiv({
+		// 	cls: 'structured-links-container'
+		// }, el => {
+		// 	el.textContent = 'hello'
+		// })
 
-			// const mdLeafEl = mdBacklinkLeaf.view.containerEl.parentNode as HTMLElement
-			// const prLeafEl = prBacklinkLeaf.view.containerEl.parentNode as HTMLElement
+		// if (!this.isPluginLeafExists) {
+		// 	this.clear()
+		// 	this.createPluginLeaf()
+		// }
+		//
+		// const { prBacklinkLeaf, mdBacklinkLeaf } = this.data
 
-			// markdown editing view element
-			const mdEl =
-					activeView.containerEl.querySelector('.mod-active .markdown-source-view .CodeMirror-lines')
-					|| document.querySelector(".mod-active .markdown-source-view")
-			// preview view element
-			const prEl = activeView.containerEl.querySelector('.mod-active .markdown-preview-view')
+		// const mdLeafEl = mdBacklinkLeaf.view.containerEl.parentNode as HTMLElement
+		// const prLeafEl = prBacklinkLeaf.view.containerEl.parentNode as HTMLElement
 
-			const backlinksContainer: HTMLElement = mdEl.querySelector('.backlinks') || mdEl.createDiv({
-				cls: 'backlinks'
-			})
-			backlinksContainer.empty()
+		// markdown editing view element
+		const mdEl =
+				activeView.containerEl.querySelector('.mod-active .markdown-source-view .CodeMirror-lines')
+				|| document.querySelector(".mod-active .markdown-source-view")
+		// preview view element
+		const prEl = activeView.containerEl.querySelector('.mod-active .markdown-preview-view')
 
-
-			// Open the editing file
-			let activeFile: TFile = this.app.workspace.getActiveFile();
-			if (activeFile == null) {
-				return // Currently focusing window is not related to a file.
-			}
-
-			backlinksContainer.createDiv({
-				text: new Date() + activeFile.name
-			});
-
-			// forward links
-			let activeFileCache = this.app.metadataCache.getFileCache(activeFile)
-			if (activeFileCache == null) {
-				// sometime, we can't get metadata cache from obsidian.
-				console.log("Missing activeFileCache")
-			} else {
-				console.log(activeFileCache.links)
-				if (activeFileCache.links != null) {
-					activeFileCache.links.forEach(it => {
-						console.log(it)
-						// TODO how do i get path?
-						console.log(`CALC!!! link=${it.link} displayText=${it.displayText}`)
-						const file = this.app.metadataCache.getFirstLinkpathDest(it.link, '')
-						const path = file != null ? file.path : null // null if the file doesn't created
-						this.createBox(backlinksContainer, 'forward', path, it.displayText, 'b')
-					})
-				}
-			}
-
-			// back links
-			// console.log(`frontmatter={fileCache.frontmatter}`)
-			let app: App = this.app
-			const backlinks = getBackLinks(this.app, activeFile.path)
-			console.log(`backlinks: ${backlinks.length}`)
-			backlinks.forEach(it => {
-				this.createBox(backlinksContainer, 'back', it.path, it.title, 'preview')
-			})
-
-
-			// mdEl?.appendChild(mdLeafEl)
-			// prEl?.appendChild(prLeafEl)
-
-			// await this.updateBacklinks(file)
-			// @ts-ignore
-			// await this.saveData({ ids: [mdBacklinkLeaf.id, prBacklinkLeaf.id] })
+		const backlinksContainer: HTMLElement = mdEl.querySelector('.backlinks') || mdEl.createDiv({
+			cls: 'backlinks'
 		})
+		backlinksContainer.empty()
+
+
+		// Open the editing file
+		let activeFile: TFile = this.app.workspace.getActiveFile();
+		if (activeFile == null) {
+			return // Currently focusing window is not related to a file.
+		}
+
+		backlinksContainer.createDiv({
+			text: new Date() + activeFile.name
+		});
+
+		// forward links
+		let activeFileCache = this.app.metadataCache.getFileCache(activeFile)
+		if (activeFileCache == null) {
+			// sometime, we can't get metadata cache from obsidian.
+			console.log("Missing activeFileCache")
+		} else {
+			console.log(activeFileCache.links)
+			if (activeFileCache.links != null) {
+				activeFileCache.links.forEach(it => {
+					console.log(it)
+					// TODO how do i get path?
+					console.log(`CALC!!! link=${it.link} displayText=${it.displayText}`)
+					const file = this.app.metadataCache.getFirstLinkpathDest(it.link, '')
+					const path = file != null ? file.path : null // null if the file doesn't created
+					this.createBox(backlinksContainer, 'forward', path, it.displayText, 'b')
+				})
+			}
+		}
+
+		// back links
+		// console.log(`frontmatter={fileCache.frontmatter}`)
+		const backlinks = getBackLinks(this.app, activeFile.path)
+		console.log(`backlinks: ${backlinks.length}`)
+		backlinks.forEach(it => {
+			this.createBox(backlinksContainer, 'back', it.path, it.title, 'preview')
+		})
+
+
+		// mdEl?.appendChild(mdLeafEl)
+		// prEl?.appendChild(prLeafEl)
+
+		// await this.updateBacklinks(file)
+		// @ts-ignore
+		// await this.saveData({ ids: [mdBacklinkLeaf.id, prBacklinkLeaf.id] })
 	}
 
 	private createBox(container: HTMLElement, direction: string, path: string, title: string, preview: string) {
