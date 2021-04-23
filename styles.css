@@ -38,3 +38,9 @@
 .markdown-preview-section {
     padding-bottom: 10px !important;
 }
+
+.structured-link-clearfix {zoom:1;}
+.structured-link-clearfix:after{
+    content: "";
+    display: block;
+    clear: both;}

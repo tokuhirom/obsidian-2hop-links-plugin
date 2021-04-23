@@ -1,5 +1,5 @@
 import {
-	App,
+	App, CachedMetadata,
 	ItemView,
 	MarkdownPreviewView,
 	MarkdownView,
@@ -107,34 +107,27 @@ export default class StructuredLinksPlugin extends Plugin {
 			return // Currently focusing window is not related to a file.
 		}
 
+		let activeFileCache: CachedMetadata = this.app.metadataCache.getFileCache(activeFile)
+
 		backlinksContainer.createDiv({
 			text: new Date() + activeFile.name
 		});
 
 		// forward links
-		let activeFileCache = this.app.metadataCache.getFileCache(activeFile)
-		if (activeFileCache == null) {
-			// sometime, we can't get metadata cache from obsidian.
-			console.log(`Missing activeFileCache '${activeFile.path}`)
-		} else {
-			console.log(activeFileCache.links)
-			if (activeFileCache.links != null) {
-				activeFileCache.links.forEach(async it => {
-					console.log(it)
-					// TODO how do i get path?
-					console.log(`CALC!!! link=${it.link} displayText=${it.displayText}`)
-					const file = this.app.metadataCache.getFirstLinkpathDest(it.link, '')
-					const path = file != null ? file.path : null // null if the file doesn't created
-					await this.createBox(backlinksContainer, 'forward', path, it.displayText)
-				})
-			}
-		}
+		// TODO dedup
+		const basicLinksContainer = backlinksContainer.createDiv({
+			cls: ['structured-link-clearfix']
+		})
+		let forwardLinks = this.getForwardLinks(activeFile, activeFileCache);
+		forwardLinks.forEach(async it => {
+			await this.createBox(basicLinksContainer, 'forward', it.path, it.title)
+		})
 
 		// back links
-		const backlinks = getBackLinks(this.app, activeFile.path)
+		const backlinks: FileEntity[] = getBackLinks(this.app, activeFile.path)
 		console.log(`backlinks: ${backlinks.length}`)
 		backlinks.forEach(async it => {
-			await this.createBox(backlinksContainer, 'back', it.path, it.title)
+			await this.createBox(basicLinksContainer, 'back', it.path, it.title)
 		})
 
 		// 2hop links
@@ -163,10 +156,32 @@ export default class StructuredLinksPlugin extends Plugin {
 		// await this.saveData({ ids: [mdBacklinkLeaf.id, prBacklinkLeaf.id] })
 	}
 
+	private getForwardLinks(activeFile: TFile, activeFileCache: CachedMetadata): FileEntity[] {
+		if (activeFileCache == null) {
+			// sometime, we can't get metadata cache from obsidian.
+			console.log(`Missing activeFileCache '${activeFile.path}`)
+		} else {
+			console.log(activeFileCache.links)
+			if (activeFileCache.links != null) {
+				return activeFileCache.links.map(it => {
+					console.log(it)
+					// TODO how do i get path?
+					console.log(`CALC!!! link=${it.link} displayText=${it.displayText}`)
+					const file = this.app.metadataCache.getFirstLinkpathDest(it.link, '')
+					const path = file != null ? file.path : null // null if the file doesn't created
+					return new FileEntity(path, it.displayText)
+				})
+			}
+		}
+		return []
+	}
+
 	private render2hopLinks(activeFile: TFile, backlinksContainer: HTMLElement, targetLinks: Record<string, Record<string, number>>) {
 		const result = this.getThings(activeFile, targetLinks)
 		const links = Object.keys(targetLinks[activeFile.path])
-		backlinksContainer.createDiv({}, async el => {
+		backlinksContainer.createDiv({
+			cls: ['structured-link-clearfix']
+		}, async el => {
 			for (const link of links) {
 				if (!result[link]) {
 					continue;
