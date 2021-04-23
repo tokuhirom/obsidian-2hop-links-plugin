@@ -128,25 +128,10 @@ export default class StructuredLinksPlugin extends Plugin {
 
 		// 2hop links
 		if (activeFileCache != null && activeFileCache.links != null) {
-			const unresolved = this.aggregate2hopLinks(activeFile, this.app.metadataCache.unresolvedLinks);
-			const resolved: Record<string, string[]> = this.aggregate2hopLinks(activeFile, this.app.metadataCache.resolvedLinks)
-			const twoHopLinks: Record<string, FileEntity[]> = {}
-			for (let target of [unresolved, resolved]) {
-				for (let k of Object.keys(target)) {
-					if (target[k].length > 0) {
-						twoHopLinks[k] = target[k].map(it => FileEntity.fromPath(it))
-					}
-				}
-			}
-			const twoHopLinks2: TwoHopLink[] = Object.keys(
-					this.app.metadataCache.unresolvedLinks[activeFile.path]
-			).concat(
-					Object.keys(this.app.metadataCache.resolvedLinks[activeFile.path])
-			).map(path => {
-				return twoHopLinks[path] ? new TwoHopLink(path, twoHopLinks[path]) : null
-			}).filter(it => it)
+			const twoHopLinks = this.getTwoHopLinks(activeFile);
+
 			ReactDOM.render(<TwoHopCardsView onClick={onclick}
-																			 twoHopLinks={twoHopLinks2}
+																			 twoHopLinks={twoHopLinks}
 			getPreview={
 				async (path: string) => await this.readPreview(path)
 			}
@@ -171,6 +156,27 @@ export default class StructuredLinksPlugin extends Plugin {
 		// await this.updateBacklinks(file)
 		// @ts-ignore
 		// await this.saveData({ ids: [mdBacklinkLeaf.id, prBacklinkLeaf.id] })
+	}
+
+	private getTwoHopLinks(activeFile: TFile) {
+		const unresolved = this.aggregate2hopLinks(activeFile, this.app.metadataCache.unresolvedLinks);
+		const resolved: Record<string, string[]> = this.aggregate2hopLinks(activeFile, this.app.metadataCache.resolvedLinks)
+		const twoHopLinks: Record<string, FileEntity[]> = {}
+		for (let target of [unresolved, resolved]) {
+			for (let k of Object.keys(target)) {
+				if (target[k].length > 0) {
+					twoHopLinks[k] = target[k].map(it => FileEntity.fromPath(it))
+				}
+			}
+		}
+		const twoHopLinks2: TwoHopLink[] = Object.keys(
+				this.app.metadataCache.unresolvedLinks[activeFile.path]
+		).concat(
+				Object.keys(this.app.metadataCache.resolvedLinks[activeFile.path])
+		).map(path => {
+			return twoHopLinks[path] ? new TwoHopLink(path, twoHopLinks[path]) : null
+		}).filter(it => it)
+		return twoHopLinks2;
 	}
 
 	private async getBasicCards(activeFile: TFile, activeFileCache: CachedMetadata) {
