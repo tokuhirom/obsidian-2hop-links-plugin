@@ -1,6 +1,4 @@
 /* Sets all the text color to red! */
-body {
-}
 .backlinks {
     margin-top: 80px;
 }
@@ -24,7 +22,7 @@ body {
 .structured-link-title {
     display: -webkit-box;
     overflow: hidden;
-    -webkit-line-clamp: 3;
+    /*-webkit-line-clamp: 3;*/
     -webkit-box-orient: vertical;
 }
 .structured-link-preview {
@@ -33,4 +31,8 @@ body {
 .structured-link-header {
     clear: both;
     background-color: burlywood;
+}
+
+.markdown-preview-section {
+    padding-bottom: 10px !important;
 }

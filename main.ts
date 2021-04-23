@@ -68,19 +68,7 @@ export default class StructuredLinksPlugin extends Plugin {
 
 		const isAllowedView = activeView instanceof MarkdownView || activeView instanceof MarkdownPreviewView
 
-		const isBacklinkView = activeView.getState().hasOwnProperty('backlinkCollapsed')
-
-		// if (!this.hasOpenedMdFiles) {
-		// 	this.clear()
-		// 	return
-		// }
-
-		if (isBacklinkView) {
-			return
-		}
-
 		if (!isAllowedView) {
-			// this.clear()
 			return
 		}
 
@@ -106,6 +94,7 @@ export default class StructuredLinksPlugin extends Plugin {
 				|| document.querySelector(".mod-active .markdown-source-view")
 		// preview view element
 		const prEl = activeView.containerEl.querySelector('.mod-active .markdown-preview-view')
+		console.log(`prEl=${prEl}, mdEl=${mdEl}`)
 
 		const backlinksContainer: HTMLElement = mdEl.querySelector('.backlinks') || mdEl.createDiv({
 			cls: 'backlinks'
@@ -153,6 +142,19 @@ export default class StructuredLinksPlugin extends Plugin {
 			this.render2hopLinks(activeFile, backlinksContainer, this.app.metadataCache.unresolvedLinks);
 			this.render2hopLinks(activeFile, backlinksContainer, this.app.metadataCache.resolvedLinks);
 		}
+
+		// If preview element doesn't have a backlinks container, then add it.
+		// {
+		{
+			const prElBackLinkEl = prEl.querySelector('.backlinks')
+			if (prElBackLinkEl!=null){
+				prElBackLinkEl.remove()
+			}
+			const cloned = backlinksContainer.cloneNode(true)
+			prEl.appendChild(cloned)
+		}
+
+		// const prEl = activeView.containerEl.querySelector('.mod-active .markdown-preview-view')
 
 		// mdEl?.appendChild(mdLeafEl)
 		// prEl?.appendChild(prLeafEl)
@@ -213,7 +215,7 @@ export default class StructuredLinksPlugin extends Plugin {
 		titleEl.textContent = title
 		const previewEl = document.createElement('div')
 		previewEl.className = 'structured-link-preview'
-		previewEl.textContent = title
+		previewEl.textContent = preview
 		box.appendChild(titleEl)
 		box.appendChild(previewEl)
 		// self.app.workspace.openLinkText(title, path)
