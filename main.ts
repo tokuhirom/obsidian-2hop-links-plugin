@@ -20,6 +20,11 @@ const DEFAULT_SETTINGS: StructuredLinksPluginSettings = {
 
 const VIEW_TYPE_STRUCTURED_LINKS = 'tokuhirom.obsidian-structured-links-plugin';
 
+// is there a better way to get title?
+function path2title(path: string) {
+	return path.replace(/\.md$/, '').replace(/.*\//, '')
+}
+
 export default class StructuredLinksPlugin extends Plugin {
 	settings: StructuredLinksPluginSettings;
 	view: StructuredLinksView;
@@ -166,11 +171,11 @@ export default class StructuredLinksPlugin extends Plugin {
 					return
 				}
 				el.createEl('div', {
-					text: link.replace(/\.md$/, '').replace(/.*\//, ''),
+					text: path2title(link),
 					cls: ['structured-link-header', 'structured-link-box']
 				})
 				result[link].forEach(path => {
-					const title = path.replace(/\.md$/, '').replace(/.*\//, '')
+					const title = path2title(path)
 					this.createBox(el, '2hop', path, title, title)
 				})
 			})
@@ -381,11 +386,7 @@ class FileEntity {
 	}
 
 	static fromPath(path: string): FileEntity {
-		const title = this.pathToTitle(path)
+		const title = path2title(path)
 		return new FileEntity(path, title)
-	}
-
-	private static pathToTitle(path: string) {
-		return path.replace(/^.*\//, '').replace(/\.md$/, '')
 	}
 }
