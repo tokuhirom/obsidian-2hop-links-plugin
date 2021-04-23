@@ -42,7 +42,16 @@ export default class StructuredLinksPlugin extends Plugin {
 		console.log('loaded obsidian-structured-links plugin');
 
 		this.app.workspace.on('file-open', this.renderBacklinks.bind(this))
-		this.app.vault.on("modify", this.renderBacklinks.bind(this))
+		this.app.metadataCache.on("resolve", file => {
+			let activeFile: TFile = this.app.workspace.getActiveFile();
+			if (activeFile != null) {
+				console.log(`RESOLVE::::: ${file.path} == ${activeFile.path}`)
+				if (file.path == activeFile.path) {
+					console.log(`RESOLVE::::: ${file.path} == ${activeFile.path}`)
+					this.renderBacklinks()
+				}
+			}
+		})
 	}
 
 	private renderBacklinks() {
@@ -115,7 +124,9 @@ export default class StructuredLinksPlugin extends Plugin {
 		let activeFileCache = this.app.metadataCache.getFileCache(activeFile)
 		if (activeFileCache == null) {
 			// sometime, we can't get metadata cache from obsidian.
-			console.log("Missing activeFileCache")
+			console.log(`Missing activeFileCache '${activeFile.path}`)
+			let cache = this.app.metadataCache.getCache(activeFile.path);
+			console.log(`Missing activeFileCache::? '${cache}`)
 		} else {
 			console.log(activeFileCache.links)
 			if (activeFileCache.links != null) {
