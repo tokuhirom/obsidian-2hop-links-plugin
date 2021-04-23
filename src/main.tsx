@@ -117,21 +117,7 @@ export default class StructuredLinksPlugin extends Plugin {
 		});
 
 		// forward links
-		// TODO dedup
-		const basicLinksContainer = backlinksContainer.createDiv({
-			cls: ['structured-link-clearfix']
-		})
-		let forwardLinks = this.getForwardLinks(activeFile, activeFileCache);
-		forwardLinks.forEach(async it => {
-			await this.createBox(basicLinksContainer, it.path, it.title)
-		})
-
-		// back links
-		const backlinks: FileEntity[] = getBackLinks(this.app, activeFile.path)
-		console.log(`backlinks: ${backlinks.length}`)
-		backlinks.forEach(async it => {
-			await this.createBox(basicLinksContainer, it.path, it.title)
-		})
+		this.renderBasicCardsView(backlinksContainer, activeFile, activeFileCache);
 
 		// 2hop links
 		if (activeFileCache != null && activeFileCache.links != null) {
@@ -157,6 +143,41 @@ export default class StructuredLinksPlugin extends Plugin {
 		// await this.updateBacklinks(file)
 		// @ts-ignore
 		// await this.saveData({ ids: [mdBacklinkLeaf.id, prBacklinkLeaf.id] })
+	}
+
+	private async renderBasicCardsView(backlinksContainer: HTMLElement, activeFile: TFile, activeFileCache: CachedMetadata) {
+		// TODO dedup
+		const basicLinksContainer = backlinksContainer.createDiv({
+			cls: ['structured-link-clearfix']
+		})
+
+		let forwardLinks: FileEntity[] = this.getForwardLinks(activeFile, activeFileCache);
+		// forwardLinks.forEach(async it => {
+		// 	await this.createBox(basicLinksContainer, it.path, it.title)
+		// })
+
+		// back links
+		const backlinks: FileEntity[] = getBackLinks(this.app, activeFile.path)
+
+		const links: FileEntity[] = forwardLinks.concat(backlinks)
+
+		let seen : Record<string, boolean> = {}
+		function onlyUnique(value: FileEntity) {
+			const key = value.path != null ? value.path : value.title;
+			if (seen[key]) {
+				return false
+			}
+			seen[key] = true
+			return true
+		}
+
+		const unique = links.filter(onlyUnique)
+
+		console.log(`backlinks: ${backlinks.length}`)
+		for (let i = 0; i < unique.length; i++) {
+			const it = unique[i];
+			await this.createBox(basicLinksContainer, it.path, it.title)
+		}
 	}
 
 	private getForwardLinks(activeFile: TFile, activeFileCache: CachedMetadata): FileEntity[] {
