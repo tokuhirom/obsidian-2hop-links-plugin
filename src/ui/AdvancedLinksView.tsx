@@ -2,11 +2,13 @@ import {TwoHopLink} from "../model/TwoHopLink";
 
 import React from "react";
 import {FileEntity} from "../model/FileEntity";
-import TwoHopCardsView from "./TwoHopCardsView";
-import BasicCardsView from "./BasicCardsView";
+import TwoHopLinksView from "./TwoHopLinksView";
+import ConnectedLinksView from "./ConnectedLinksView";
+import NewLinksView from "./NewLinksView";
 
 interface AdvancedLinksViewProps {
-  basicCards: FileEntity[];
+  connectedLinks: FileEntity[];
+  newLinks: FileEntity[];
   twoHopLinks: TwoHopLink[];
   onClick: (fileEntry: FileEntity) => void;
   getPreview: (path: string) => Promise<string>;
@@ -20,8 +22,9 @@ export default class AdvancedLinksView extends React.Component<AdvancedLinksView
   render() {
     return (
         <div>
-          <BasicCardsView fileEntities={this.props.basicCards} onClick={this.props.onClick} getPreview={this.props.getPreview} />
-          <TwoHopCardsView twoHopLinks={this.props.twoHopLinks} onClick={this.props.onClick} getPreview={this.props.getPreview} />
+          <ConnectedLinksView fileEntities={this.props.connectedLinks} onClick={this.props.onClick} getPreview={this.props.getPreview} />
+          <TwoHopLinksView twoHopLinks={this.props.twoHopLinks} onClick={this.props.onClick} getPreview={this.props.getPreview} />
+          <NewLinksView fileEntities={this.props.newLinks} onClick={this.props.onClick} getPreview={this.props.getPreview} />
         </div>
     );
   }

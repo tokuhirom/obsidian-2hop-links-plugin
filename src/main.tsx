@@ -10,7 +10,6 @@ import {
 } from 'obsidian';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import CardView from "./ui/CardView";
 import {FileEntity} from "./model/FileEntity";
 import {TwoHopLink} from "./model/TwoHopLink";
 import AdvancedLinksView from "./ui/AdvancedLinksView";
@@ -22,8 +21,6 @@ interface StructuredLinksPluginSettings {
 const DEFAULT_SETTINGS: StructuredLinksPluginSettings = {
 	mySetting: 'default'
 }
-
-const VIEW_TYPE_STRUCTURED_LINKS = 'tokuhirom.obsidian-structured-links-plugin';
 
 export default class StructuredLinksPlugin extends Plugin {
 	settings: StructuredLinksPluginSettings;
@@ -78,22 +75,20 @@ export default class StructuredLinksPlugin extends Plugin {
 		// preview view element
 		const previewEl = activeView.containerEl.querySelector('.mod-active .markdown-preview-view')
 
-		const basicCards = await this.getBasicCards(activeFile, activeFileCache);
+		const [connectedLinks, newLinks] = await this.getBasicCards(activeFile, activeFileCache);
 		const twoHopLinks = this.getTwoHopLinks(activeFile);
 
-		console.log("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK")
-		console.log(basicCards)
-
-		await this.renderAdvancedLinks(basicCards, twoHopLinks, markdownEditingEl)
-		await this.renderAdvancedLinks(basicCards, twoHopLinks, previewEl)
+		await this.renderAdvancedLinks(connectedLinks, newLinks, twoHopLinks, markdownEditingEl)
+		await this.renderAdvancedLinks(connectedLinks, newLinks, twoHopLinks, previewEl)
 	}
 
-	private async renderAdvancedLinks(basicCards: FileEntity[], twoHopLinks: TwoHopLink[], el:Element) {
+	private async renderAdvancedLinks(connectedLinks: FileEntity[], newLinks: FileEntity[], twoHopLinks: TwoHopLink[], el:Element) {
 		const container: HTMLElement = el.querySelector('.backlinks') || el.createDiv({
 			cls: 'backlinks'
 		})
 		ReactDOM.render(<AdvancedLinksView
-				basicCards={basicCards}
+				connectedLinks={connectedLinks}
+				newLinks={newLinks}
 				twoHopLinks={twoHopLinks}
 				onClick={this.openFile.bind(this)}
 				getPreview={this.readPreview.bind(this)}
@@ -110,46 +105,48 @@ export default class StructuredLinksPlugin extends Plugin {
 		await this.app.workspace.openLinkText(fileEntry.title, fileEntry.path)
 	}
 
-	private getTwoHopLinks(activeFile: TFile) {
-		const unresolved = this.aggregate2hopLinks(activeFile, this.app.metadataCache.unresolvedLinks);
-		const resolved: Record<string, string[]> = this.aggregate2hopLinks(activeFile, this.app.metadataCache.resolvedLinks)
+	private getTwoHopLinks(activeFile: TFile) : TwoHopLink[] {
 		const twoHopLinks: Record<string, FileEntity[]> = {}
-		for (let target of [unresolved, resolved]) {
-			for (let k of Object.keys(target)) {
-				if (target[k].length > 0) {
-					twoHopLinks[k] = target[k].map(it => FileEntity.fromPath(it))
-				}
+		let unresolved = this.aggregate2hopLinks(activeFile, this.app.metadataCache.unresolvedLinks);
+		for (let k of Object.keys(unresolved)) {
+			if (unresolved[k].length > 0) {
+				twoHopLinks[k] = unresolved[k].map(it => FileEntity.fromPath(it))
 			}
 		}
-		const twoHopLinks2: TwoHopLink[] = Object.keys(
+
+		return Object.keys(
 				this.app.metadataCache.unresolvedLinks[activeFile.path]
 		).concat(
 				Object.keys(this.app.metadataCache.resolvedLinks[activeFile.path])
 		).map(path => {
 			return twoHopLinks[path] ? new TwoHopLink(path, twoHopLinks[path]) : null
-		}).filter(it => it)
-		return twoHopLinks2;
+		}).filter(it => it);
 	}
 
-	private async getBasicCards(activeFile: TFile, activeFileCache: CachedMetadata): Promise<FileEntity[]> {
-		let forwardLinks: FileEntity[] = this.getForwardLinks(activeFile, activeFileCache);
-
-		// back links
+	private async getBasicCards(activeFile: TFile, activeFileCache: CachedMetadata): Promise<[FileEntity[], FileEntity[]]> {
+		const forwardLinks: FileEntity[] = this.getForwardLinks(activeFile, activeFileCache);
 		const backlinks: FileEntity[] = getBackLinks(this.app, activeFile.path)
 
 		const links: FileEntity[] = forwardLinks.concat(backlinks)
 
+		let connectedLinks: FileEntity[] = []
+		let newLinks: FileEntity[] = []
 		let seen : Record<string, boolean> = {}
-		function onlyUnique(value: FileEntity) {
-			const key = value.path != null ? value.path : value.title;
+		for (let link of links) {
+			const key = link.key()
 			if (seen[key]) {
-				return false
+				continue
 			}
 			seen[key] = true
-			return true
+
+			if (link.path) {
+				connectedLinks.push(link)
+			} else {
+				newLinks.push(link)
+			}
 		}
 
-		return links.filter(onlyUnique)
+		return [connectedLinks, newLinks]
 	}
 
 	private getForwardLinks(activeFile: TFile, activeFileCache: CachedMetadata): FileEntity[] {
@@ -169,7 +166,6 @@ export default class StructuredLinksPlugin extends Plugin {
 		}
 		return []
 	}
-
 
 	// Aggregate 2hop links
 	private aggregate2hopLinks(activeFile: TFile, links: Record<string, Record<string, number>>) {
