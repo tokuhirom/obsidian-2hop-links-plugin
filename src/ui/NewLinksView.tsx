@@ -17,7 +17,10 @@ export default class NewLinksView extends React.Component<NewLinksViewProps> {
 
   render() {
     return (
-        <div className='structured-link-clearfix'>
+        <div className='advanced-links-section'>
+          <div className={'advanced-links-box advanced-links-new-links-header'}>
+            New links
+          </div>
           {this.props.fileEntities.map(
               it => {
                 return <LinkView

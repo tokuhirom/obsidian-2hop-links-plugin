@@ -17,7 +17,10 @@ export default class ConnectedLinksView extends React.Component<ConnectedLinksVi
 
   render() {
     return (
-        <div className='structured-link-clearfix'>
+        <div className='advanced-links-section'>
+          <div className={'advanced-links-box advanced-links-connected-links-header'}>
+            Links
+          </div>
           {this.props.fileEntities.map(
               it => {
                 return <LinkView

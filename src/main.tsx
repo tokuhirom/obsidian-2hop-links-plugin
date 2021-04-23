@@ -4,8 +4,6 @@ import {
 	MarkdownPreviewView,
 	MarkdownView,
 	Plugin,
-	PluginSettingTab,
-	Setting,
 	TFile
 } from 'obsidian';
 import React from 'react';
@@ -14,24 +12,12 @@ import {FileEntity} from "./model/FileEntity";
 import {TwoHopLink} from "./model/TwoHopLink";
 import AdvancedLinksView from "./ui/AdvancedLinksView";
 
-interface StructuredLinksPluginSettings {
-	mySetting: string;
-}
-
-const DEFAULT_SETTINGS: StructuredLinksPluginSettings = {
-	mySetting: 'default'
-}
-
 export default class StructuredLinksPlugin extends Plugin {
-	settings: StructuredLinksPluginSettings;
 
 	async onload() {
 		console.log('------ loading obsidian-structured-links plugin');
 
-		await this.loadSettings();
 		console.log(this.registerView);
-
-		this.addSettingTab(new StructuredLinksSettingTab(this.app, this));
 
 		console.log('loaded obsidian-structured-links plugin');
 
@@ -75,16 +61,16 @@ export default class StructuredLinksPlugin extends Plugin {
 		// preview view element
 		const previewEl = activeView.containerEl.querySelector('.mod-active .markdown-preview-view')
 
-		const [connectedLinks, newLinks] = await this.getBasicCards(activeFile, activeFileCache);
 		const twoHopLinks = this.getTwoHopLinks(activeFile);
+		const [connectedLinks, newLinks] = await this.getBasicCards(activeFile, activeFileCache, twoHopLinks);
 
 		await this.renderAdvancedLinks(connectedLinks, newLinks, twoHopLinks, markdownEditingEl)
 		await this.renderAdvancedLinks(connectedLinks, newLinks, twoHopLinks, previewEl)
 	}
 
 	private async renderAdvancedLinks(connectedLinks: FileEntity[], newLinks: FileEntity[], twoHopLinks: TwoHopLink[], el:Element) {
-		const container: HTMLElement = el.querySelector('.backlinks') || el.createDiv({
-			cls: 'backlinks'
+		const container: HTMLElement = el.querySelector('.advanced-links-container') || el.createDiv({
+			cls: 'advanced-links-container'
 		})
 		ReactDOM.render(<AdvancedLinksView
 				connectedLinks={connectedLinks}
@@ -107,7 +93,14 @@ export default class StructuredLinksPlugin extends Plugin {
 
 	private getTwoHopLinks(activeFile: TFile) : TwoHopLink[] {
 		const twoHopLinks: Record<string, FileEntity[]> = {}
+		// no unresolved links in this file
+		if (this.app.metadataCache.unresolvedLinks[activeFile.path] == null) {
+			return []
+		}
 		let unresolved = this.aggregate2hopLinks(activeFile, this.app.metadataCache.unresolvedLinks);
+		if (unresolved == null) {
+			return []
+		}
 		for (let k of Object.keys(unresolved)) {
 			if (unresolved[k].length > 0) {
 				twoHopLinks[k] = unresolved[k].map(it => FileEntity.fromPath(it))
@@ -116,14 +109,12 @@ export default class StructuredLinksPlugin extends Plugin {
 
 		return Object.keys(
 				this.app.metadataCache.unresolvedLinks[activeFile.path]
-		).concat(
-				Object.keys(this.app.metadataCache.resolvedLinks[activeFile.path])
 		).map(path => {
 			return twoHopLinks[path] ? new TwoHopLink(path, twoHopLinks[path]) : null
 		}).filter(it => it);
 	}
 
-	private async getBasicCards(activeFile: TFile, activeFileCache: CachedMetadata): Promise<[FileEntity[], FileEntity[]]> {
+	private async getBasicCards(activeFile: TFile, activeFileCache: CachedMetadata, twoHopLinks: TwoHopLink[]): Promise<[FileEntity[], FileEntity[]]> {
 		const forwardLinks: FileEntity[] = this.getForwardLinks(activeFile, activeFileCache);
 		const backlinks: FileEntity[] = getBackLinks(this.app, activeFile.path)
 
@@ -132,6 +123,7 @@ export default class StructuredLinksPlugin extends Plugin {
 		let connectedLinks: FileEntity[] = []
 		let newLinks: FileEntity[] = []
 		let seen : Record<string, boolean> = {}
+		const twoHopLinkSets = new Set<string>(twoHopLinks.map(it => it.link))
 		for (let link of links) {
 			const key = link.key()
 			if (seen[key]) {
@@ -142,7 +134,9 @@ export default class StructuredLinksPlugin extends Plugin {
 			if (link.path) {
 				connectedLinks.push(link)
 			} else {
-				newLinks.push(link)
+				if (!twoHopLinkSets.has(link.title)) {
+					newLinks.push(link)
+				}
 			}
 		}
 
@@ -168,7 +162,7 @@ export default class StructuredLinksPlugin extends Plugin {
 	}
 
 	// Aggregate 2hop links
-	private aggregate2hopLinks(activeFile: TFile, links: Record<string, Record<string, number>>) {
+	private aggregate2hopLinks(activeFile: TFile, links: Record<string, Record<string, number>>): Record<string, string[]> {
 		const result: Record<string, string[]> = {}
 		if (links[activeFile.path] == null) {
 			return result
@@ -215,44 +209,8 @@ export default class StructuredLinksPlugin extends Plugin {
 	onunload() {
 		console.log('unloading plugin');
 	}
-
-	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-	}
-
-	async saveSettings() {
-		await this.saveData(this.settings);
-	}
 }
 
-class StructuredLinksSettingTab extends PluginSettingTab {
-	private plugin: StructuredLinksPlugin;
-
-	constructor(app: App, plugin: StructuredLinksPlugin) {
-		super(app, plugin);
-		this.plugin = plugin;
-	}
-
-	display(): void {
-		let {containerEl} = this;
-
-		containerEl.empty();
-
-		containerEl.createEl('h2', {text: 'Settings for my awesome plugin.'});
-
-		new Setting(containerEl)
-			.setName('Setting #1')
-			.setDesc('It\'s a secret')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue('')
-				.onChange(async (value) => {
-					console.log('Secret: ' + value);
-					this.plugin.settings.mySetting = value;
-					await this.plugin.saveSettings();
-				}));
-	}
-}
 
 function getBackLinks(app: App, name: string):FileEntity[] {
 	const resolvedLinks: Record<string, Record<string, number>> = app.metadataCache.resolvedLinks;

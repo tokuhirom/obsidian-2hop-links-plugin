@@ -25,9 +25,9 @@ export default class LinkView extends React.Component<LinkViewProps, LinkViewSta
 
   render() {
     return (
-        <div className={'structured-link-box'} onClick={() => this.props.onClick(this.props.fileEntry)}>
-          <div className='structured-link-title'>{ this.props.fileEntry.title }</div>
-          <div className={'structured-link-preview'}>{this.state.preview}</div>
+        <div className={'advanced-links-box'} onClick={() => this.props.onClick(this.props.fileEntry)}>
+          <div className='advanced-links-box-title'>{ this.props.fileEntry.title }</div>
+          <div className={'advanced-links-box-preview'}>{this.state.preview}</div>
         </div>
     );
   }

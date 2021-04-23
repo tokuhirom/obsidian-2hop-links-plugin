@@ -20,8 +20,8 @@ export default class TwoHopLinksView extends React.Component<TwoHopLinksViewProp
         <div>
           {this.props.twoHopLinks.map(
               link => (
-                  <div className='structured-link-clearfix' key={link.link}>
-                    <div className={'structured-link-header structured-link-box'}>
+                  <div className='advanced-links-section' key={link.link}>
+                    <div className={'advanced-links-twohop-header advanced-links-box'}>
                       {link.link}
                     </div>
                     {link.fileEntities.map(
