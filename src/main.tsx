@@ -15,6 +15,7 @@ import ReactDOM from 'react-dom';
 import CardView from "./ui/CardView";
 import {FileEntity} from "./model/FileEntity";
 import {path2title} from "./utils";
+import BasicCardsView from "./ui/BasicCardsView";
 
 interface StructuredLinksPluginSettings {
 	mySetting: string;
@@ -40,17 +41,17 @@ export default class StructuredLinksPlugin extends Plugin {
 		console.log('loaded obsidian-structured-links plugin');
 
 		this.app.workspace.on('file-open', this.renderBacklinks.bind(this))
-		this.app.metadataCache.on("resolve", file => {
+		this.app.metadataCache.on("resolve", async file => {
 			let activeFile: TFile = this.app.workspace.getActiveFile();
 			if (activeFile != null) {
 				if (file.path == activeFile.path) {
-					this.renderBacklinks()
+					await this.renderBacklinks()
 				}
 			}
 		})
 	}
 
-	private renderBacklinks() {
+	private async renderBacklinks() {
 		const activeLeaf = this.app.workspace.activeLeaf
 
 		if (!activeLeaf) {
@@ -107,7 +108,21 @@ export default class StructuredLinksPlugin extends Plugin {
 		});
 
 		// forward links
-		this.renderBasicCardsView(backlinksContainer, activeFile, activeFileCache);
+		const basicCards = await this.getBasicCards(activeFile, activeFileCache);
+
+		const onclick = async (fileEntry :FileEntity) => {
+			if (fileEntry.path == null || fileEntry.path == 'null') {
+				if (!confirm(`Create new file: ${fileEntry.title}?`)) {
+					console.log("Canceled!!")
+					return false
+				}
+			}
+			await this.app.workspace.openLinkText(fileEntry.title, fileEntry.path)
+		};
+
+		ReactDOM.render(<BasicCardsView fileEntities={basicCards} onClick={onclick} getPreview={
+			async (path: string) => await this.readPreview(path)
+		}/>, backlinksContainer.createDiv());
 
 		// 2hop links
 		if (activeFileCache != null && activeFileCache.links != null) {
@@ -135,11 +150,7 @@ export default class StructuredLinksPlugin extends Plugin {
 		// await this.saveData({ ids: [mdBacklinkLeaf.id, prBacklinkLeaf.id] })
 	}
 
-	private async renderBasicCardsView(backlinksContainer: HTMLElement, activeFile: TFile, activeFileCache: CachedMetadata) {
-		const basicLinksContainer = backlinksContainer.createDiv({
-			cls: ['structured-link-clearfix']
-		})
-
+	private async getBasicCards(activeFile: TFile, activeFileCache: CachedMetadata) {
 		let forwardLinks: FileEntity[] = this.getForwardLinks(activeFile, activeFileCache);
 		// forwardLinks.forEach(async it => {
 		// 	await this.createBox(basicLinksContainer, it.path, it.title)
@@ -160,13 +171,7 @@ export default class StructuredLinksPlugin extends Plugin {
 			return true
 		}
 
-		const unique = links.filter(onlyUnique)
-
-		console.log(`backlinks: ${backlinks.length}`)
-		for (let i = 0; i < unique.length; i++) {
-			const it = unique[i];
-			await this.createBox(basicLinksContainer, it.path, it.title)
-		}
+		return links.filter(onlyUnique)
 	}
 
 	private getForwardLinks(activeFile: TFile, activeFileCache: CachedMetadata): FileEntity[] {
@@ -204,7 +209,7 @@ export default class StructuredLinksPlugin extends Plugin {
 				})
 				for (const path of result[link]) {
 					const title = path2title(path)
-					await this.createBox(el, path, title)
+					await this.createBox(el, new FileEntity(path, title))
 				}
 			}
 		})
@@ -249,23 +254,22 @@ export default class StructuredLinksPlugin extends Plugin {
 		}).first()
 	}
 
-	private async createBox(container: HTMLElement, path: string, title: string) {
-		// create preview.
-		let preview = await this.readPreview(path)
-
+	private async createBox(container: HTMLElement, fileEntry: FileEntity) {
 		const box = container.createDiv({})
 
-		const onclick = async (path: string, title:string) => {
-			if (path == null || path == 'null') {
-				if (!confirm(`Create new file: ${title}?`)) {
+		const onclick = async (fileEntry :FileEntity) => {
+			if (fileEntry.path == null || fileEntry.path == 'null') {
+				if (!confirm(`Create new file: ${fileEntry.title}?`)) {
 					console.log("Canceled!!")
 					return false
 				}
 			}
-			await this.app.workspace.openLinkText(title, path)
+			await this.app.workspace.openLinkText(fileEntry.title, fileEntry.path)
 		};
 
-		ReactDOM.render(<CardView path={path} title={title} preview={preview} onClick={onclick}/>, box);
+		ReactDOM.render(<CardView fileEntry={fileEntry} onClick={onclick} getPreview={
+			async (path: string) => await this.readPreview(path)
+		}/>, box);
 		// TODO preview に画像を対応させる like scrapbox
 	}
 

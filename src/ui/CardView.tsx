@@ -1,28 +1,33 @@
 import React from "react";
+import {FileEntity} from "../model/FileEntity";
 
-interface State {
-  path: string;
-  title: string;
-  preview: string;
-  onClick: (path: string, title: string) => void;
+interface CardViewProps {
+  fileEntry: FileEntity;
+  onClick: (fileEntry: FileEntity) => void;
+  getPreview: (path: string) => Promise<string>;
+}
+
+interface CardViewState {
+  preview: string
 }
 
 
-export default class CardView extends React.Component<State> {
-  constructor(props: State) {
+export default class CardView extends React.Component<CardViewProps, CardViewState> {
+  constructor(props: CardViewProps) {
     super(props);
+    this.state = {preview: null}
   }
 
-  clicked(p1: React.MouseEvent<HTMLDivElement>) {
-    return function () {
-    };
+  async componentDidMount() {
+    const preview = await this.props.getPreview(this.props.fileEntry.path)
+    this.setState({ preview })
   }
 
   render() {
     return (
-        <div className={'structured-link-box'} onClick={() => this.props.onClick(this.props.path, this.props.title)}>
-          <div className='structured-link-title'>{ this.props.title }</div>
-          <div className={'structured-link-preview'}>{this.props.preview}</div>
+        <div className={'structured-link-box'} onClick={() => this.props.onClick(this.props.fileEntry)}>
+          <div className='structured-link-title'>{ this.props.fileEntry.title }</div>
+          <div className={'structured-link-preview'}>{this.state.preview}</div>
         </div>
     );
   }
