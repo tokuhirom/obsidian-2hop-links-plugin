@@ -1,9 +1,9 @@
 ## Obsidian Structured Link Plugin
 
 - [x] show dialog before create new file
-- [ ] dedup boxes
-- [ ] show 2hop links
-- [ ] show preview text
+- [x] dedup boxes
+- [x] show 2hop links
+- [x] show preview text
 - [ ] show preview image
 - [ ] publish it
-- [ ] reload backlinks when updated metadatacache.
+- [x] reload backlinks when updated metadatacache.
