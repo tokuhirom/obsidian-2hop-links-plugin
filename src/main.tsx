@@ -1,5 +1,4 @@
 import {
-	App,
 	CachedMetadata,
 	MarkdownPreviewView,
 	MarkdownView,
@@ -110,7 +109,7 @@ export default class StructuredLinksPlugin extends Plugin {
 		return Object.keys(
 				this.app.metadataCache.unresolvedLinks[activeFile.path]
 		).map(path => {
-			return twoHopLinks[path] ? new TwoHopLink(path, twoHopLinks[path]) : null
+			return twoHopLinks[path] ? new TwoHopLink(FileEntity.fromLink(path), twoHopLinks[path]) : null
 		}).filter(it => it);
 	}
 
@@ -147,7 +146,7 @@ export default class StructuredLinksPlugin extends Plugin {
 		let connectedLinks: FileEntity[] = []
 		let newLinks: FileEntity[] = []
 		let seen : Record<string, boolean> = {}
-		const twoHopLinkSets = new Set<string>(twoHopLinks.map(it => it.link))
+		const twoHopLinkSets = new Set<string>(twoHopLinks.map(it => it.link.title))
 		for (let link of links) {
 			const key = link.key()
 			if (seen[key]) {

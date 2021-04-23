@@ -17,4 +17,8 @@ export class FileEntity {
   key() {
     return this.path != null ? this.path : this.title
   }
+
+  static fromLink(link: string) {
+    return new FileEntity(null, link);
+  }
 }

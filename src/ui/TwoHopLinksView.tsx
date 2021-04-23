@@ -20,9 +20,9 @@ export default class TwoHopLinksView extends React.Component<TwoHopLinksViewProp
         <div>
           {this.props.twoHopLinks.map(
               link => (
-                  <div className='advanced-links-section' key={link.link}>
-                    <div className={'advanced-links-twohop-header advanced-links-box'}>
-                      {link.link}
+                  <div className='advanced-links-section' key={link.link.path}>
+                    <div className={'advanced-links-twohop-header advanced-links-box'} onClick={() => this.props.onClick(link.link)}>
+                      {link.link.title}
                     </div>
                     {link.fileEntities.map(
                         it => <LinkView
