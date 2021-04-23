@@ -81,6 +81,9 @@ export default class StructuredLinksPlugin extends Plugin {
 		const basicCards = await this.getBasicCards(activeFile, activeFileCache);
 		const twoHopLinks = this.getTwoHopLinks(activeFile);
 
+		console.log("KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK")
+		console.log(basicCards)
+
 		await this.renderAdvancedLinks(basicCards, twoHopLinks, markdownEditingEl)
 		await this.renderAdvancedLinks(basicCards, twoHopLinks, previewEl)
 	}
@@ -157,10 +160,10 @@ export default class StructuredLinksPlugin extends Plugin {
 			console.log(activeFileCache.links)
 			if (activeFileCache.links != null) {
 				return activeFileCache.links.map(it => {
-					console.log(`CALC!!! link=${it.link} displayText=${it.displayText}`)
+					console.log(`CALC!!! link=${it.link} displayText=${it.displayText} original=${it.original}`)
 					const file = this.app.metadataCache.getFirstLinkpathDest(it.link, '')
 					const path = file != null ? file.path : null // null if the file doesn't created
-					return new FileEntity(path, it.displayText)
+					return new FileEntity(path, it.link)
 				})
 			}
 		}
