@@ -20,7 +20,12 @@ export default class BasicCardsView extends React.Component<BasicCardsViewProps>
         <div className='structured-link-clearfix'>
           {this.props.fileEntities.map(
               it => {
-                return <CardView fileEntry={it} onClick={this.props.onClick} getPreview={this.props.getPreview} />
+                return <CardView
+                    fileEntry={it}
+                    key={it.key()}
+                    onClick={this.props.onClick}
+                    getPreview={this.props.getPreview}
+                />
               }
           )}
         </div>

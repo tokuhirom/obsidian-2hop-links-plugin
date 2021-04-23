@@ -13,4 +13,8 @@ export class FileEntity {
     const title = path2title(path)
     return new FileEntity(path, title)
   }
+
+  key() {
+    return this.path != null ? this.path : this.title
+  }
 }

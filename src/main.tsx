@@ -1,23 +1,19 @@
 import {
 	App,
 	CachedMetadata,
-	ItemView,
 	MarkdownPreviewView,
 	MarkdownView,
 	Plugin,
 	PluginSettingTab,
 	Setting,
-	TFile,
-	WorkspaceLeaf
+	TFile
 } from 'obsidian';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import CardView from "./ui/CardView";
 import {FileEntity} from "./model/FileEntity";
-import {path2title} from "./utils";
-import BasicCardsView from "./ui/BasicCardsView";
-import TwoHopCardsView from "./ui/TwoHopCardsView";
 import {TwoHopLink} from "./model/TwoHopLink";
+import AdvancedLinksView from "./ui/AdvancedLinksView";
 
 interface StructuredLinksPluginSettings {
 	mySetting: string;
@@ -63,39 +59,9 @@ export default class StructuredLinksPlugin extends Plugin {
 		const activeView = activeLeaf.view
 
 		const isAllowedView = activeView instanceof MarkdownView || activeView instanceof MarkdownPreviewView
-
 		if (!isAllowedView) {
 			return
 		}
-
-		// activeView.containerEl.createDiv({
-		// 	cls: 'structured-links-container'
-		// }, el => {
-		// 	el.textContent = 'hello'
-		// })
-
-		// if (!this.isPluginLeafExists) {
-		// 	this.clear()
-		// 	this.createPluginLeaf()
-		// }
-		//
-		// const { prBacklinkLeaf, mdBacklinkLeaf } = this.data
-
-		// const mdLeafEl = mdBacklinkLeaf.view.containerEl.parentNode as HTMLElement
-		// const prLeafEl = prBacklinkLeaf.view.containerEl.parentNode as HTMLElement
-
-		// markdown editing view element
-		const mdEl =
-				activeView.containerEl.querySelector('.mod-active .markdown-source-view .CodeMirror-lines')
-				|| document.querySelector(".mod-active .markdown-source-view")
-		// preview view element
-		const prEl = activeView.containerEl.querySelector('.mod-active .markdown-preview-view')
-		console.log(`prEl=${prEl}, mdEl=${mdEl}`)
-
-		const backlinksContainer: HTMLElement = mdEl.querySelector('.backlinks') || mdEl.createDiv({
-			cls: 'backlinks'
-		})
-		backlinksContainer.empty()
 
 		// Open the editing file
 		let activeFile: TFile = this.app.workspace.getActiveFile();
@@ -105,57 +71,40 @@ export default class StructuredLinksPlugin extends Plugin {
 
 		let activeFileCache: CachedMetadata = this.app.metadataCache.getFileCache(activeFile)
 
-		backlinksContainer.createDiv({
-			text: new Date() + activeFile.name
-		});
+		// markdown editing view element
+		const markdownEditingEl =
+				activeView.containerEl.querySelector('.mod-active .markdown-source-view .CodeMirror-lines')
+				|| document.querySelector(".mod-active .markdown-source-view")
+		// preview view element
+		const previewEl = activeView.containerEl.querySelector('.mod-active .markdown-preview-view')
 
-		// forward links
 		const basicCards = await this.getBasicCards(activeFile, activeFileCache);
+		const twoHopLinks = this.getTwoHopLinks(activeFile);
 
-		const onclick = async (fileEntry :FileEntity) => {
-			if (fileEntry.path == null || fileEntry.path == 'null') {
-				if (!confirm(`Create new file: ${fileEntry.title}?`)) {
-					console.log("Canceled!!")
-					return false
-				}
+		await this.renderAdvancedLinks(basicCards, twoHopLinks, markdownEditingEl)
+		await this.renderAdvancedLinks(basicCards, twoHopLinks, previewEl)
+	}
+
+	private async renderAdvancedLinks(basicCards: FileEntity[], twoHopLinks: TwoHopLink[], el:Element) {
+		const container: HTMLElement = el.querySelector('.backlinks') || el.createDiv({
+			cls: 'backlinks'
+		})
+		ReactDOM.render(<AdvancedLinksView
+				basicCards={basicCards}
+				twoHopLinks={twoHopLinks}
+				onClick={this.openFile.bind(this)}
+				getPreview={this.readPreview.bind(this)}
+		/>, container);
+	}
+
+	private async openFile(fileEntry :FileEntity) {
+		if (fileEntry.path == null || fileEntry.path == 'null') {
+			if (!confirm(`Create new file: ${fileEntry.title}?`)) {
+				console.log("Canceled!!")
+				return false
 			}
-			await this.app.workspace.openLinkText(fileEntry.title, fileEntry.path)
-		};
-
-		ReactDOM.render(<BasicCardsView fileEntities={basicCards} onClick={onclick} getPreview={
-			async (path: string) => await this.readPreview(path)
-		}/>, backlinksContainer.createDiv());
-
-		// 2hop links
-		if (activeFileCache != null && activeFileCache.links != null) {
-			const twoHopLinks = this.getTwoHopLinks(activeFile);
-
-			ReactDOM.render(<TwoHopCardsView onClick={onclick}
-																			 twoHopLinks={twoHopLinks}
-			getPreview={
-				async (path: string) => await this.readPreview(path)
-			}
-			/>, backlinksContainer.createDiv())
 		}
-
-		// If preview element doesn't have a backlinks container, then add it.
-		{
-			const prElBackLinkEl = prEl.querySelector('.backlinks')
-			if (prElBackLinkEl!=null){
-				prElBackLinkEl.remove()
-			}
-			const cloned = backlinksContainer.cloneNode(true)
-			prEl.appendChild(cloned)
-		}
-
-		// const prEl = activeView.containerEl.querySelector('.mod-active .markdown-preview-view')
-
-		// mdEl?.appendChild(mdLeafEl)
-		// prEl?.appendChild(prLeafEl)
-
-		// await this.updateBacklinks(file)
-		// @ts-ignore
-		// await this.saveData({ ids: [mdBacklinkLeaf.id, prBacklinkLeaf.id] })
+		await this.app.workspace.openLinkText(fileEntry.title, fileEntry.path)
 	}
 
 	private getTwoHopLinks(activeFile: TFile) {
@@ -179,11 +128,8 @@ export default class StructuredLinksPlugin extends Plugin {
 		return twoHopLinks2;
 	}
 
-	private async getBasicCards(activeFile: TFile, activeFileCache: CachedMetadata) {
+	private async getBasicCards(activeFile: TFile, activeFileCache: CachedMetadata): Promise<FileEntity[]> {
 		let forwardLinks: FileEntity[] = this.getForwardLinks(activeFile, activeFileCache);
-		// forwardLinks.forEach(async it => {
-		// 	await this.createBox(basicLinksContainer, it.path, it.title)
-		// })
 
 		// back links
 		const backlinks: FileEntity[] = getBackLinks(this.app, activeFile.path)
@@ -211,7 +157,6 @@ export default class StructuredLinksPlugin extends Plugin {
 			console.log(activeFileCache.links)
 			if (activeFileCache.links != null) {
 				return activeFileCache.links.map(it => {
-					console.log(it)
 					console.log(`CALC!!! link=${it.link} displayText=${it.displayText}`)
 					const file = this.app.metadataCache.getFirstLinkpathDest(it.link, '')
 					const path = file != null ? file.path : null // null if the file doesn't created
@@ -225,11 +170,20 @@ export default class StructuredLinksPlugin extends Plugin {
 
 	// Aggregate 2hop links
 	private aggregate2hopLinks(activeFile: TFile, links: Record<string, Record<string, number>>) {
-		let activeFileLinks = new Set(Object.keys(links[activeFile.path]))
 		const result: Record<string, string[]> = {}
+		if (links[activeFile.path] == null) {
+			return result
+		}
+		let activeFileLinks = new Set(Object.keys(links[activeFile.path]))
+		if (links == null) {
+			return result
+		}
 
 		for (let src of Object.keys(links)) {
 			if (src == activeFile.path) {
+				continue
+			}
+			if (links[src] == null) {
 				continue
 			}
 			for (let dest of Object.keys(links[src])) {
@@ -239,9 +193,6 @@ export default class StructuredLinksPlugin extends Plugin {
 					}
 					result[dest].push(src)
 				}
-				// if (src.match(/Conn|Miss/) || dest.match(/Conn|Miss/)) { // debugging
-				// 	console.log(`resolved ${src} => ${dest}`)
-				// }
 			}
 		}
 		return result
@@ -260,25 +211,6 @@ export default class StructuredLinksPlugin extends Plugin {
 		return lines.filter(it => {
 			return it.match(/\S/) && !it.match(/^#[a-zA-Z]+\s*$/)
 		}).first()
-	}
-
-	private async createBox(container: HTMLElement, fileEntry: FileEntity) {
-		const box = container.createDiv({})
-
-		const onclick = async (fileEntry :FileEntity) => {
-			if (fileEntry.path == null || fileEntry.path == 'null') {
-				if (!confirm(`Create new file: ${fileEntry.title}?`)) {
-					console.log("Canceled!!")
-					return false
-				}
-			}
-			await this.app.workspace.openLinkText(fileEntry.title, fileEntry.path)
-		};
-
-		ReactDOM.render(<CardView fileEntry={fileEntry} onClick={onclick} getPreview={
-			async (path: string) => await this.readPreview(path)
-		}/>, box);
-		// TODO preview に画像を対応させる like scrapbox
 	}
 
 	onunload() {
@@ -325,20 +257,12 @@ class StructuredLinksSettingTab extends PluginSettingTab {
 
 function getBackLinks(app: App, name: string):FileEntity[] {
 	const resolvedLinks: Record<string, Record<string, number>> = app.metadataCache.resolvedLinks;
-	// this.app.metadataCache.resolvedLinks
 	let backLinksDeduper: Record<string, boolean> = {} // use Record for de-dup
 	console.log(`getBackLinksTarget=${name}`)
 	let i= 0;
 	for (let src of Object.keys(resolvedLinks)) {
-		// console.log(`k=${k}`)
 		for (let dest of Object.keys(resolvedLinks[src])) {
 			i+=1
-			if (dest.startsWith('アニメ')) {
-				console.log(`HIT!! -- src=${src} dest=${dest}`)
-			}
-			// if (i>10) {
-			// 	return [] //DEBUG
-			// }
 			if (dest == name) {
 				console.log(`Backlinks HIT!: ${src}`)
 				backLinksDeduper[src] = true
