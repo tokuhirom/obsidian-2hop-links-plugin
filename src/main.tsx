@@ -1,5 +1,6 @@
 import {
-	App, CachedMetadata,
+	App,
+	CachedMetadata,
 	ItemView,
 	MarkdownPreviewView,
 	MarkdownView,
@@ -12,6 +13,8 @@ import {
 import React from 'react';
 import ReactDOM from 'react-dom';
 import CardView from "./ui/CardView";
+import {FileEntity} from "./model/FileEntity";
+import {path2title} from "./utils";
 
 interface StructuredLinksPluginSettings {
 	mySetting: string;
@@ -23,14 +26,8 @@ const DEFAULT_SETTINGS: StructuredLinksPluginSettings = {
 
 const VIEW_TYPE_STRUCTURED_LINKS = 'tokuhirom.obsidian-structured-links-plugin';
 
-// is there a better way to get title?
-function path2title(path: string) {
-	return path.replace(/\.md$/, '').replace(/.*\//, '')
-}
-
 export default class StructuredLinksPlugin extends Plugin {
 	settings: StructuredLinksPluginSettings;
-	view: StructuredLinksView;
 
 	async onload() {
 		console.log('------ loading obsidian-structured-links plugin');
@@ -40,13 +37,6 @@ export default class StructuredLinksPlugin extends Plugin {
 
 		this.addSettingTab(new StructuredLinksSettingTab(this.app, this));
 
-		this.registerView(VIEW_TYPE_STRUCTURED_LINKS, (leaf) => {
-			console.log("Creating StructuredLinksView~~")
-			this.view = new StructuredLinksView(leaf);
-			return this.view;
-		});
-
-		this.app.workspace.onLayoutReady(this.initLeaf.bind(this))
 		console.log('loaded obsidian-structured-links plugin');
 
 		this.app.workspace.on('file-open', this.renderBacklinks.bind(this))
@@ -146,7 +136,6 @@ export default class StructuredLinksPlugin extends Plugin {
 	}
 
 	private async renderBasicCardsView(backlinksContainer: HTMLElement, activeFile: TFile, activeFileCache: CachedMetadata) {
-		// TODO dedup
 		const basicLinksContainer = backlinksContainer.createDiv({
 			cls: ['structured-link-clearfix']
 		})
@@ -284,18 +273,6 @@ export default class StructuredLinksPlugin extends Plugin {
 		console.log('unloading plugin');
 	}
 
-	initLeaf(): void {
-		if (this.app.workspace.getLeavesOfType(VIEW_TYPE_STRUCTURED_LINKS).length) {
-			let view = this.app.workspace.getLeavesOfType(VIEW_TYPE_STRUCTURED_LINKS)[0]
-			this.view = (view.view as StructuredLinksView)
-			return;
-		}
-
-		this.app.workspace.getRightLeaf(false).setViewState({
-			type: VIEW_TYPE_STRUCTURED_LINKS,
-		});
-	}
-
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 	}
@@ -359,46 +336,3 @@ function getBackLinks(app: App, name: string):FileEntity[] {
 	return Object.keys(backLinksDeduper).map(path => FileEntity.fromPath(path))
 }
 
-class StructuredLinksView extends ItemView {
-
-	constructor(leaf: WorkspaceLeaf) {
-		super(leaf);
-		console.log("Created StructuredLinksView")
-	}
-
-	getDisplayText(): string {
-		// console.log("StructuredLinksView.getDisplayText")
-		return "Structured Links";
-	}
-
-	getViewType(): string {
-		// console.log("StructuredLinksView.getViewType")
-		return VIEW_TYPE_STRUCTURED_LINKS;
-	}
-	getIcon(): string {
-		return 'search';
-	}
-
-	onClose(): Promise<void> {
-		return Promise.resolve();
-	}
-
-	async onOpen(): Promise<void> {
-		console.log('opening structured!')
-	}
-}
-
-class FileEntity {
-	public path: string;
-	public title: string;
-
-	constructor(path: string, title: string) {
-		this.path = path;
-		this.title = title;
-	}
-
-	static fromPath(path: string): FileEntity {
-		const title = path2title(path)
-		return new FileEntity(path, title)
-	}
-}
