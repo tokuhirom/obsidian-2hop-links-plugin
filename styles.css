@@ -30,3 +30,7 @@ body {
 .structured-link-preview {
     color: #224433;
 }
+.structured-link-header {
+    clear: both;
+    background-color: burlywood;
+}

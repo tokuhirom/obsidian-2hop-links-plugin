@@ -45,9 +45,7 @@ export default class StructuredLinksPlugin extends Plugin {
 		this.app.metadataCache.on("resolve", file => {
 			let activeFile: TFile = this.app.workspace.getActiveFile();
 			if (activeFile != null) {
-				console.log(`RESOLVE::::: ${file.path} == ${activeFile.path}`)
 				if (file.path == activeFile.path) {
-					console.log(`RESOLVE::::: ${file.path} == ${activeFile.path}`)
 					this.renderBacklinks()
 				}
 			}
@@ -109,7 +107,6 @@ export default class StructuredLinksPlugin extends Plugin {
 		})
 		backlinksContainer.empty()
 
-
 		// Open the editing file
 		let activeFile: TFile = this.app.workspace.getActiveFile();
 		if (activeFile == null) {
@@ -125,8 +122,6 @@ export default class StructuredLinksPlugin extends Plugin {
 		if (activeFileCache == null) {
 			// sometime, we can't get metadata cache from obsidian.
 			console.log(`Missing activeFileCache '${activeFile.path}`)
-			let cache = this.app.metadataCache.getCache(activeFile.path);
-			console.log(`Missing activeFileCache::? '${cache}`)
 		} else {
 			console.log(activeFileCache.links)
 			if (activeFileCache.links != null) {
@@ -142,13 +137,17 @@ export default class StructuredLinksPlugin extends Plugin {
 		}
 
 		// back links
-		// console.log(`frontmatter={fileCache.frontmatter}`)
 		const backlinks = getBackLinks(this.app, activeFile.path)
 		console.log(`backlinks: ${backlinks.length}`)
 		backlinks.forEach(it => {
 			this.createBox(backlinksContainer, 'back', it.path, it.title, 'preview')
 		})
 
+		// 2hop links
+		if (activeFileCache != null && activeFileCache.links != null) {
+			this.render2hopLinks(activeFile, backlinksContainer, this.app.metadataCache.unresolvedLinks);
+			this.render2hopLinks(activeFile, backlinksContainer, this.app.metadataCache.resolvedLinks);
+		}
 
 		// mdEl?.appendChild(mdLeafEl)
 		// prEl?.appendChild(prLeafEl)
@@ -156,6 +155,50 @@ export default class StructuredLinksPlugin extends Plugin {
 		// await this.updateBacklinks(file)
 		// @ts-ignore
 		// await this.saveData({ ids: [mdBacklinkLeaf.id, prBacklinkLeaf.id] })
+	}
+
+	private render2hopLinks(activeFile: TFile, backlinksContainer: HTMLElement, targetLinks: Record<string, Record<string, number>>) {
+		const result = this.getThings(activeFile, targetLinks)
+		const links = Object.keys(targetLinks[activeFile.path])
+		backlinksContainer.createDiv({}, el => {
+			links.forEach(link => {
+				if (!result[link]) {
+					return
+				}
+				el.createEl('div', {
+					text: link.replace(/\.md$/, '').replace(/.*\//, ''),
+					cls: ['structured-link-header', 'structured-link-box']
+				})
+				result[link].forEach(path => {
+					const title = path.replace(/\.md$/, '').replace(/.*\//, '')
+					this.createBox(el, '2hop', path, title, title)
+				})
+			})
+		})
+	}
+
+	// Aggregate 2hop links
+	private getThings(activeFile: TFile, links: Record<string, Record<string, number>>) {
+		let activeFileLinks = new Set(Object.keys(links[activeFile.path]))
+		const result: Record<string, string[]> = {}
+
+		for (let src of Object.keys(links)) {
+			if (src == activeFile.path) {
+				continue
+			}
+			for (let dest of Object.keys(links[src])) {
+				if (activeFileLinks.has(dest)) {
+					if (!result[dest]) {
+						result[dest] = []
+					}
+					result[dest].push(src)
+				}
+				if (src.match(/Conn|Miss/) || dest.match(/Conn|Miss/)) { // debugging
+					console.log(`resolved ${src} => ${dest}`)
+				}
+			}
+		}
+		return result
 	}
 
 	private createBox(container: HTMLElement, direction: string, path: string, title: string, preview: string) {
