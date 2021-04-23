@@ -165,7 +165,6 @@ export default class StructuredLinksPlugin extends Plugin {
 			if (activeFileCache.links != null) {
 				return activeFileCache.links.map(it => {
 					console.log(it)
-					// TODO how do i get path?
 					console.log(`CALC!!! link=${it.link} displayText=${it.displayText}`)
 					const file = this.app.metadataCache.getFirstLinkpathDest(it.link, '')
 					const path = file != null ? file.path : null // null if the file doesn't created
@@ -231,8 +230,10 @@ export default class StructuredLinksPlugin extends Plugin {
 		}
 		const content = await this.app.vault.read(file)
 		// Remove YFM
-		const lines = content.replace(/.*^---$/gm, '').split(/\n/)
-		return lines.filter(it => it.match(/\S/)).first()
+		const lines = content.replace(/.*^---$/gms, '').split(/\n/)
+		return lines.filter(it => {
+			return it.match(/\S/) && !it.match(/^#[a-zA-Z]+\s*$/)
+		}).first()
 	}
 
 	private async createBox(container: HTMLElement, direction: string, path: string, title: string) {
