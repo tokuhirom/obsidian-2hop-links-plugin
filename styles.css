@@ -18,6 +18,7 @@
     color: #224433;
     background-color: antiquewhite;
     border-radius: 4px;
+    overflow: hidden;
 }
 .structured-link-title {
     display: -webkit-box;
@@ -27,6 +28,7 @@
 }
 .structured-link-preview {
     color: #224433;
+    font-size: 70%;
 }
 .structured-link-header {
     clear: both;

@@ -119,13 +119,13 @@ export default class StructuredLinksPlugin extends Plugin {
 		} else {
 			console.log(activeFileCache.links)
 			if (activeFileCache.links != null) {
-				activeFileCache.links.forEach(it => {
+				activeFileCache.links.forEach(async it => {
 					console.log(it)
 					// TODO how do i get path?
 					console.log(`CALC!!! link=${it.link} displayText=${it.displayText}`)
 					const file = this.app.metadataCache.getFirstLinkpathDest(it.link, '')
 					const path = file != null ? file.path : null // null if the file doesn't created
-					this.createBox(backlinksContainer, 'forward', path, it.displayText, 'b')
+					await this.createBox(backlinksContainer, 'forward', path, it.displayText)
 				})
 			}
 		}
@@ -133,8 +133,8 @@ export default class StructuredLinksPlugin extends Plugin {
 		// back links
 		const backlinks = getBackLinks(this.app, activeFile.path)
 		console.log(`backlinks: ${backlinks.length}`)
-		backlinks.forEach(it => {
-			this.createBox(backlinksContainer, 'back', it.path, it.title, 'preview')
+		backlinks.forEach(async it => {
+			await this.createBox(backlinksContainer, 'back', it.path, it.title)
 		})
 
 		// 2hop links
@@ -144,7 +144,6 @@ export default class StructuredLinksPlugin extends Plugin {
 		}
 
 		// If preview element doesn't have a backlinks container, then add it.
-		// {
 		{
 			const prElBackLinkEl = prEl.querySelector('.backlinks')
 			if (prElBackLinkEl!=null){
@@ -167,20 +166,20 @@ export default class StructuredLinksPlugin extends Plugin {
 	private render2hopLinks(activeFile: TFile, backlinksContainer: HTMLElement, targetLinks: Record<string, Record<string, number>>) {
 		const result = this.getThings(activeFile, targetLinks)
 		const links = Object.keys(targetLinks[activeFile.path])
-		backlinksContainer.createDiv({}, el => {
-			links.forEach(link => {
+		backlinksContainer.createDiv({}, async el => {
+			for (const link of links) {
 				if (!result[link]) {
-					return
+					continue;
 				}
 				el.createEl('div', {
 					text: path2title(link),
 					cls: ['structured-link-header', 'structured-link-box']
 				})
-				result[link].forEach(path => {
+				for (const path of result[link]) {
 					const title = path2title(path)
-					this.createBox(el, '2hop', path, title, title)
-				})
-			})
+					await this.createBox(el, '2hop', path, title)
+				}
+			}
 		})
 	}
 
@@ -200,15 +199,31 @@ export default class StructuredLinksPlugin extends Plugin {
 					}
 					result[dest].push(src)
 				}
-				if (src.match(/Conn|Miss/) || dest.match(/Conn|Miss/)) { // debugging
-					console.log(`resolved ${src} => ${dest}`)
-				}
+				// if (src.match(/Conn|Miss/) || dest.match(/Conn|Miss/)) { // debugging
+				// 	console.log(`resolved ${src} => ${dest}`)
+				// }
 			}
 		}
 		return result
 	}
 
-	private createBox(container: HTMLElement, direction: string, path: string, title: string, preview: string) {
+	private async readPreview(path: string) {
+		let file: TFile| null =  this.app.vault.getFiles().filter(it => {
+			return it.path == path
+		}).first()
+		if (path == null) {
+			return ''
+		}
+		const content = await this.app.vault.read(file)
+		// Remove YFM
+		const lines = content.replace(/.*^---$/gm, '').split(/\n/)
+		return lines.filter(it => it.match(/\S/)).first()
+	}
+
+	private async createBox(container: HTMLElement, direction: string, path: string, title: string) {
+		// create preview.
+		let preview = await this.readPreview(path)
+
 		const box = container.createDiv({cls: 'structured-link-box'})
 		const titleEl = document.createElement('div')
 		titleEl.className = 'structured-link-title'
