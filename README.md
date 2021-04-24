@@ -1,9 +1,10 @@
-## Obsidian Structured Link Plugin
+# Obsidian Advanced Links Plugin
 
-- [x] show dialog before create new file
-- [x] dedup boxes
-- [x] show 2hop links
-- [x] show preview text
-- [ ] show preview image
-- [ ] publish it
-- [x] reload backlinks when updated metadatacache.
+## Show links under the editor.
+
+<img src="https://github.com/tokuhirom/obsidian-advanced-links-lugin/blob/master/docs/img.png?raw=true" alt="links">
+
+## Preview mode is also supported.
+
+<img src="https://github.com/tokuhirom/obsidian-advanced-links-lugin/blob/master/docs/preview.png?raw=true" alt="preview">
+
