@@ -11,7 +11,7 @@ import {FileEntity} from "./model/FileEntity";
 import {TwoHopLink} from "./model/TwoHopLink";
 import AdvancedLinksView from "./ui/AdvancedLinksView";
 
-export default class StructuredLinksPlugin extends Plugin {
+export default class AdvancedLinksPlugin extends Plugin {
 
 	async onload() {
 		console.log('------ loading obsidian-structured-links plugin');
