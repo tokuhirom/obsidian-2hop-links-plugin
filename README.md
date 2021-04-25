@@ -1,5 +1,6 @@
 # Obsidian Advanced Links Plugin
 
+This plugin adds links to other pages at the bottom of the editor.
 With this plugin, you can roam the digital garden freely.
 
 ## Show links under the editor.
