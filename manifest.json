@@ -1,9 +1,9 @@
 {
 	"id": "obsidian-advanced-links-plugin",
 	"name": "Advanced Links Plugin",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"minAppVersion": "0.9.12",
-	"description": "This is a advanced links plugin for Obsidian.",
+	"description": "Add links to other pages at the bottom of the editor.",
 	"author": "Tokuhiro Matsuno",
 	"authorUrl": "https://obsidian.md/about",
 	"isDesktopOnly": false
