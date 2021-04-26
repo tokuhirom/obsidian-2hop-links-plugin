@@ -172,10 +172,8 @@ export default class AdvancedLinksPlugin extends Plugin {
 			// sometime, we can't get metadata cache from obsidian.
 			console.log(`Missing activeFileCache '${activeFile.path}`)
 		} else {
-			console.log(activeFileCache.links)
 			if (activeFileCache.links != null) {
 				return activeFileCache.links.map(it => {
-					console.log(`CALC!!! link=${it.link} displayText=${it.displayText} original=${it.original}`)
 					const file = this.app.metadataCache.getFirstLinkpathDest(it.link, '')
 					const path = file != null ? file.path : null // null if the file doesn't created
 					return new FileEntity(path, it.link)
@@ -187,12 +185,10 @@ export default class AdvancedLinksPlugin extends Plugin {
 
 	private getBackLinks(name: string):FileEntity[] {
 		const resolvedLinks: Record<string, Record<string, number>> = this.app.metadataCache.resolvedLinks;
-		console.log(`getBackLinksTarget=${name}`)
 		const result: FileEntity[] = []
 		for (let src of Object.keys(resolvedLinks)) {
 			for (let dest of Object.keys(resolvedLinks[src])) {
 				if (dest == name) {
-					console.log(`Backlinks HIT!: ${src}`)
 					result.push(FileEntity.fromPath(src))
 				}
 			}
