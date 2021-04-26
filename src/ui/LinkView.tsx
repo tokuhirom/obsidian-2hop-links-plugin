@@ -2,8 +2,8 @@ import React from "react";
 import { FileEntity } from "../model/FileEntity";
 
 interface LinkViewProps {
-  fileEntry: FileEntity;
-  onClick: (fileEntry: FileEntity) => void;
+  fileEntity: FileEntity;
+  onClick: (fileEntity: FileEntity) => void;
   getPreview: (path: string) => Promise<string>;
 }
 
@@ -21,7 +21,7 @@ export default class LinkView extends React.Component<
   }
 
   async componentDidMount(): Promise<void> {
-    const preview = await this.props.getPreview(this.props.fileEntry.path);
+    const preview = await this.props.getPreview(this.props.fileEntity.sourcePath);
     this.setState({ preview });
   }
 
@@ -29,10 +29,10 @@ export default class LinkView extends React.Component<
     return (
       <div
         className={"advanced-links-box"}
-        onClick={() => this.props.onClick(this.props.fileEntry)}
+        onClick={() => this.props.onClick(this.props.fileEntity)}
       >
         <div className="advanced-links-box-title">
-          {this.props.fileEntry.title}
+          {this.props.fileEntity.linkText}
         </div>
         <div className={"advanced-links-box-preview"}>{this.state.preview}</div>
       </div>

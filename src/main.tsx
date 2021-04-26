@@ -1,6 +1,5 @@
 import {
   CachedMetadata,
-  MarkdownPreviewView,
   MarkdownView,
   Plugin,
   TFile,
@@ -31,23 +30,13 @@ export default class AdvancedLinksPlugin extends Plugin {
   }
 
   private async renderAdvancedLinks() {
-    const activeLeaf = this.app.workspace.activeLeaf;
-
-    if (!activeLeaf) {
-      return;
-    }
-
-    const activeView = activeLeaf.view;
-
-    const isAllowedView =
-      activeView instanceof MarkdownView ||
-      activeView instanceof MarkdownPreviewView;
-    if (!isAllowedView) {
+    const markdownView: MarkdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (markdownView == null) {
       return;
     }
 
     // Open the editing file
-    const activeFile: TFile = this.app.workspace.getActiveFile();
+    const activeFile = markdownView.file
     if (activeFile == null) {
       return; // Currently focusing window is not related to a file.
     }
@@ -66,17 +55,13 @@ export default class AdvancedLinksPlugin extends Plugin {
 
     // insert links to the footer
     const markdownEditingEl =
-      activeView.containerEl.querySelector(
-        ".mod-active .markdown-source-view .CodeMirror-lines"
-      ) || document.querySelector(".mod-active .markdown-source-view");
-    const previewEl = activeView.containerEl.querySelector(
-      ".mod-active .markdown-preview-view"
-    );
+        markdownView.containerEl.querySelector(".markdown-source-view .CodeMirror-lines")
+    const previewEl = markdownView.containerEl.querySelector(".markdown-preview-view");
     await this.injectAdvancedLinks(
       connectedLinks,
       newLinks,
       twoHopLinks,
-      markdownEditingEl
+        markdownEditingEl
     );
     await this.injectAdvancedLinks(
       connectedLinks,
@@ -110,14 +95,14 @@ export default class AdvancedLinksPlugin extends Plugin {
     );
   }
 
-  private async openFile(fileEntry: FileEntity) {
-    if (fileEntry.path == null) {
-      if (!confirm(`Create new file: ${fileEntry.title}?`)) {
+  private async openFile(fileEntity: FileEntity) {
+    if (fileEntity.sourcePath == null) {
+      if (!confirm(`Create new file: ${fileEntity.linkText}?`)) {
         console.log("Canceled!!");
         return false;
       }
     }
-    await this.app.workspace.openLinkText(fileEntry.title, fileEntry.path);
+    await this.app.workspace.openLinkText(fileEntity.linkText, fileEntity.sourcePath);
   }
 
   private getTwoHopLinks(activeFile: TFile): TwoHopLink[] {
@@ -186,7 +171,7 @@ export default class AdvancedLinksPlugin extends Plugin {
     const newLinks: FileEntity[] = [];
     const seen: Record<string, boolean> = {};
     const twoHopLinkSets = new Set<string>(
-      twoHopLinks.map((it) => it.link.title)
+      twoHopLinks.map((it) => it.link.linkText)
     );
     for (const link of links) {
       const key = link.key();
@@ -195,11 +180,11 @@ export default class AdvancedLinksPlugin extends Plugin {
       }
       seen[key] = true;
 
-      if (link.path) {
+      if (link.sourcePath) {
         connectedLinks.push(link);
       } else {
         // Exclude links, that are listed on two hop links
-        if (!twoHopLinkSets.has(link.title)) {
+        if (!twoHopLinkSets.has(link.linkText)) {
           newLinks.push(link);
         }
       }

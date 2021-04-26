@@ -1,21 +1,21 @@
-import { path2title } from "../utils";
+import { path2linkText } from "../utils";
 
 export class FileEntity {
-  public path: string;
-  public title: string;
+  public sourcePath: string;
+  public linkText: string;
 
-  constructor(path: string, title: string) {
-    this.path = path;
-    this.title = title;
+  constructor(path: string, linkText: string) {
+    this.sourcePath = path;
+    this.linkText = linkText;
   }
 
   static fromPath(path: string): FileEntity {
-    const title = path2title(path);
-    return new FileEntity(path, title);
+    const linkText = path2linkText(path);
+    return new FileEntity(path, linkText);
   }
 
   key(): string {
-    return this.path != null ? this.path : this.title;
+    return this.sourcePath != null ? this.sourcePath : this.linkText;
   }
 
   static fromLink(link: string): FileEntity {

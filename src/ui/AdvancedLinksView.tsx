@@ -10,7 +10,7 @@ interface AdvancedLinksViewProps {
   connectedLinks: FileEntity[];
   newLinks: FileEntity[];
   twoHopLinks: TwoHopLink[];
-  onClick: (fileEntry: FileEntity) => void;
+  onClick: (fileEntity: FileEntity) => void;
   getPreview: (path: string) => Promise<string>;
 }
 
