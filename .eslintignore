@@ -3,5 +3,8 @@ node_modules
 # don't lint build output (make sure it's set to your correct build folder name)
 dist
 main.js
+# don't list configuration files
+.eslintrc.js
+rollup.config.js
 # don't lint nyc coverage output
 coverage
