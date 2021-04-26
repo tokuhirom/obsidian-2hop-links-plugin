@@ -14,11 +14,11 @@ export class FileEntity {
     return new FileEntity(path, title);
   }
 
-  key() {
+  key(): string {
     return this.path != null ? this.path : this.title;
   }
 
-  static fromLink(link: string) {
+  static fromLink(link: string): FileEntity {
     return new FileEntity(null, link);
   }
 }

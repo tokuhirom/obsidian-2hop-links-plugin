@@ -13,7 +13,7 @@ export default class NewLinksView extends React.Component<NewLinksViewProps> {
     super(props);
   }
 
-  render() {
+  render(): JSX.Element {
     if (this.props.fileEntities.length > 0) {
       return (
         <div className="advanced-links-section">

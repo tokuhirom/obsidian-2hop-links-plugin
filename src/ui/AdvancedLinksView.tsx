@@ -19,7 +19,7 @@ export default class AdvancedLinksView extends React.Component<AdvancedLinksView
     super(props);
   }
 
-  render() {
+  render(): JSX.Element {
     return (
       <div>
         <ConnectedLinksView

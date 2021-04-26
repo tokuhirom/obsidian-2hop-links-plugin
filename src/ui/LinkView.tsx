@@ -20,12 +20,12 @@ export default class LinkView extends React.Component<
     this.state = { preview: null };
   }
 
-  async componentDidMount() {
+  async componentDidMount(): Promise<void> {
     const preview = await this.props.getPreview(this.props.fileEntry.path);
     this.setState({ preview });
   }
 
-  render() {
+  render(): JSX.Element {
     return (
       <div
         className={"advanced-links-box"}

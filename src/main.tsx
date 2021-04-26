@@ -12,7 +12,7 @@ import { TwoHopLink } from "./model/TwoHopLink";
 import AdvancedLinksView from "./ui/AdvancedLinksView";
 
 export default class AdvancedLinksPlugin extends Plugin {
-  async onload() {
+  async onload(): Promise<void> {
     console.log("------ loading obsidian-structured-links plugin");
 
     console.log(this.registerView);
@@ -265,7 +265,7 @@ export default class AdvancedLinksPlugin extends Plugin {
       .first();
   }
 
-  onunload() {
+  onunload(): void {
     console.log("unloading plugin");
   }
 }
