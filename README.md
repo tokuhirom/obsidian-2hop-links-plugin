@@ -15,7 +15,7 @@ With this plugin, you can roam the digital garden freely.
 ## Thanks to
 
 This plugin is inspired by [scrapbox](https://scrapbox.io/)
-(See also [2ホップリンクの考察(In Japanese)](https://scrapbox.io/masui/2%E3%83%9B%E3%83%83%E3%83%97%E3%83%AA%E3%83%B3%E3%82%AF%E3%81%AE%E8%80%83%E5%AF%9F)
+(See also [2 ホップリンクの考察(In Japanese)](https://scrapbox.io/masui/2%E3%83%9B%E3%83%83%E3%83%97%E3%83%AA%E3%83%B3%E3%82%AF%E3%81%AE%E8%80%83%E5%AF%9F)
 )
 
 [masui san, the inventor of 2hop link](https://twitter.com/masui/status/1035090656371175424)
