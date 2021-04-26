@@ -1,7 +1,7 @@
 import {
   CachedMetadata,
   MarkdownView,
-  Plugin,
+  Plugin, TAbstractFile,
   TFile,
 } from "obsidian";
 import React from "react";
@@ -13,10 +13,6 @@ import AdvancedLinksView from "./ui/AdvancedLinksView";
 export default class AdvancedLinksPlugin extends Plugin {
   async onload(): Promise<void> {
     console.log("------ loading obsidian-structured-links plugin");
-
-    console.log(this.registerView);
-
-    console.log("loaded obsidian-structured-links plugin");
 
     this.app.workspace.on("file-open", this.renderAdvancedLinks.bind(this));
     this.app.metadataCache.on("resolve", async (file) => {
@@ -227,13 +223,8 @@ export default class AdvancedLinksPlugin extends Plugin {
   }
 
   private async readPreview(path: string) {
-    const file: TFile | null = this.app.vault
-      .getFiles()
-      .filter((it) => {
-        return it.path == path;
-      })
-      .first();
-    if (path == null) {
+    const file: TAbstractFile = this.app.vault.getAbstractFileByPath(path)
+    if (file == null || !(file instanceof TFile)) {
       return "";
     }
     const content = await this.app.vault.read(file);
