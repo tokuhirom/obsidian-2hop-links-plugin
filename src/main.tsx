@@ -1,7 +1,8 @@
 import {
   CachedMetadata,
   MarkdownView,
-  Plugin, TAbstractFile,
+  Plugin,
+  TAbstractFile,
   TFile,
 } from "obsidian";
 import React from "react";
@@ -26,13 +27,15 @@ export default class AdvancedLinksPlugin extends Plugin {
   }
 
   private async renderAdvancedLinks() {
-    const markdownView: MarkdownView = this.app.workspace.getActiveViewOfType(MarkdownView);
+    const markdownView: MarkdownView = this.app.workspace.getActiveViewOfType(
+      MarkdownView
+    );
     if (markdownView == null) {
       return;
     }
 
     // Open the editing file
-    const activeFile = markdownView.file
+    const activeFile = markdownView.file;
     if (activeFile == null) {
       return; // Currently focusing window is not related to a file.
     }
@@ -50,14 +53,17 @@ export default class AdvancedLinksPlugin extends Plugin {
     );
 
     // insert links to the footer
-    const markdownEditingEl =
-        markdownView.containerEl.querySelector(".markdown-source-view .CodeMirror-lines")
-    const previewEl = markdownView.containerEl.querySelector(".markdown-preview-view");
+    const markdownEditingEl = markdownView.containerEl.querySelector(
+      ".markdown-source-view .CodeMirror-lines"
+    );
+    const previewEl = markdownView.containerEl.querySelector(
+      ".markdown-preview-view"
+    );
     await this.injectAdvancedLinks(
       connectedLinks,
       newLinks,
       twoHopLinks,
-        markdownEditingEl
+      markdownEditingEl
     );
     await this.injectAdvancedLinks(
       connectedLinks,
@@ -98,7 +104,10 @@ export default class AdvancedLinksPlugin extends Plugin {
         return false;
       }
     }
-    await this.app.workspace.openLinkText(fileEntity.linkText, fileEntity.sourcePath);
+    await this.app.workspace.openLinkText(
+      fileEntity.linkText,
+      fileEntity.sourcePath
+    );
   }
 
   private getTwoHopLinks(activeFile: TFile): TwoHopLink[] {
@@ -223,7 +232,7 @@ export default class AdvancedLinksPlugin extends Plugin {
   }
 
   private async readPreview(path: string) {
-    const file: TAbstractFile = this.app.vault.getAbstractFileByPath(path)
+    const file: TAbstractFile = this.app.vault.getAbstractFileByPath(path);
     if (file == null || !(file instanceof TFile)) {
       return "";
     }
