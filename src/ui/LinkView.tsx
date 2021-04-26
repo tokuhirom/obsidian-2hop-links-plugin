@@ -21,7 +21,9 @@ export default class LinkView extends React.Component<
   }
 
   async componentDidMount(): Promise<void> {
-    const preview = await this.props.getPreview(this.props.fileEntity.sourcePath);
+    const preview = await this.props.getPreview(
+      this.props.fileEntity.sourcePath
+    );
     this.setState({ preview });
   }
 
