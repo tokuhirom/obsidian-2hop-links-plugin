@@ -1,4 +1,4 @@
-import {path2title} from "../utils";
+import { path2title } from "../utils";
 
 export class FileEntity {
   public path: string;
@@ -10,12 +10,12 @@ export class FileEntity {
   }
 
   static fromPath(path: string): FileEntity {
-    const title = path2title(path)
-    return new FileEntity(path, title)
+    const title = path2title(path);
+    return new FileEntity(path, title);
   }
 
   key() {
-    return this.path != null ? this.path : this.title
+    return this.path != null ? this.path : this.title;
   }
 
   static fromLink(link: string) {

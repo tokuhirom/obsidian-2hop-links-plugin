@@ -1,55 +1,56 @@
 /* the container */
 .advanced-links-container {
-    margin-top: 20px;
+  margin-top: 20px;
 }
 
 /* common */
-.advanced-links-section:after{
-    content: "";
-    display: block;
-    clear: both;}
+.advanced-links-section:after {
+  content: "";
+  display: block;
+  clear: both;
+}
 
 .advanced-links-box {
-    box-sizing: border-box;
-    border: 1px solid #224433;
-    float: left;
-    padding: 3px;
-    margin: 8px;
-    height: 162px;
-    width: 178px;
-    color: #224433;
-    background-color: antiquewhite;
-    border-radius: 4px;
-    overflow: hidden;
+  box-sizing: border-box;
+  border: 1px solid #224433;
+  float: left;
+  padding: 3px;
+  margin: 8px;
+  height: 162px;
+  width: 178px;
+  color: #224433;
+  background-color: antiquewhite;
+  border-radius: 4px;
+  overflow: hidden;
 }
 .advanced-links-box-title {
-    display: -webkit-box;
-    overflow: hidden;
-    /*-webkit-line-clamp: 3;*/
-    -webkit-box-orient: vertical;
+  display: -webkit-box;
+  overflow: hidden;
+  /*-webkit-line-clamp: 3;*/
+  -webkit-box-orient: vertical;
 }
 .advanced-links-box-preview {
-    color: #224433;
-    font-size: 70%;
+  color: #224433;
+  font-size: 70%;
 }
 
 /* connected links */
 .advanced-links-connected-links-header {
-    background-color: darkkhaki;
+  background-color: darkkhaki;
 }
 
 /* two hop links */
 .advanced-links-twohop-header {
-    clear: both;
-    background-color: burlywood;
+  clear: both;
+  background-color: burlywood;
 }
 
 /* new links */
 .advanced-links-new-links-header {
-    background-color: palevioletred;
+  background-color: palevioletred;
 }
 
 /* Remove bottom padding in preview mode */
 .markdown-preview-section {
-    padding-bottom: 10px !important;
+  padding-bottom: 10px !important;
 }
