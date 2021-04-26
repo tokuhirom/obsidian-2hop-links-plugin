@@ -1,6 +1,6 @@
 import { FileEntity } from "./FileEntity";
 
-export class TwoHopLink {
+export class TwohopLink {
   public link: FileEntity;
   public fileEntities: FileEntity[];
 

@@ -1,7 +1,7 @@
 {
-  "name": "obsidian-advanced-links-plugin",
+  "name": "obsidian-twohop-links-plugin",
   "version": "0.11.13",
-  "description": "This is a advanced links plugin for Obsidian (https://obsidian.md)",
+  "description": "This plugin will display the page linked 2hop ahead.",
   "main": "main.js",
   "scripts": {
     "dev": "rollup --config rollup.config.js -w",

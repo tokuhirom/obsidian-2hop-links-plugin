@@ -1,17 +1,17 @@
-import { TwoHopLink } from "../model/TwoHopLink";
+import { TwohopLink } from "../model/TwohopLink";
 
 import React from "react";
 import { FileEntity } from "../model/FileEntity";
 import LinkView from "./LinkView";
 
-interface TwoHopLinksViewProps {
-  twoHopLinks: TwoHopLink[];
+interface TwohopLinksViewProps {
+  twoHopLinks: TwohopLink[];
   onClick: (fileEntity: FileEntity) => void;
   getPreview: (path: string) => Promise<string>;
 }
 
-export default class TwoHopLinksView extends React.Component<TwoHopLinksViewProps> {
-  constructor(props: TwoHopLinksViewProps) {
+export default class TwohopLinksView extends React.Component<TwohopLinksViewProps> {
+  constructor(props: TwohopLinksViewProps) {
     super(props);
   }
 
@@ -19,9 +19,9 @@ export default class TwoHopLinksView extends React.Component<TwoHopLinksViewProp
     return (
       <div>
         {this.props.twoHopLinks.map((link) => (
-          <div className="advanced-links-section" key={link.link.sourcePath}>
+          <div className="twohop-links-section" key={link.link.sourcePath}>
             <div
-              className={"advanced-links-twohop-header advanced-links-box"}
+              className={"twohop-links-twohop-header twohop-links-box"}
               onClick={() => this.props.onClick(link.link)}
             >
               {link.link.linkText}

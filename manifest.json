@@ -1,9 +1,9 @@
 {
-  "id": "obsidian-advanced-links-plugin",
-  "name": "Advanced Links Plugin",
+  "id": "obsidian-2hop-links-plugin",
+  "name": "2Hop Links Plugin",
   "version": "0.0.5",
   "minAppVersion": "0.9.12",
-  "description": "Add links to other pages at the bottom of the editor.",
+  "description": "This plugin will display the page linked 2hop ahead.",
   "author": "Tokuhiro Matsuno",
   "authorUrl": "https://obsidian.md/about",
   "isDesktopOnly": false
