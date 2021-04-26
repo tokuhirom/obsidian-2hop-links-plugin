@@ -21,7 +21,7 @@ export default class AdvancedLinksPlugin extends Plugin {
 
     this.app.workspace.on("file-open", this.renderAdvancedLinks.bind(this));
     this.app.metadataCache.on("resolve", async (file) => {
-      let activeFile: TFile = this.app.workspace.getActiveFile();
+      const activeFile: TFile = this.app.workspace.getActiveFile();
       if (activeFile != null) {
         if (file.path == activeFile.path) {
           await this.renderAdvancedLinks();
@@ -47,12 +47,12 @@ export default class AdvancedLinksPlugin extends Plugin {
     }
 
     // Open the editing file
-    let activeFile: TFile = this.app.workspace.getActiveFile();
+    const activeFile: TFile = this.app.workspace.getActiveFile();
     if (activeFile == null) {
       return; // Currently focusing window is not related to a file.
     }
 
-    let activeFileCache: CachedMetadata = this.app.metadataCache.getFileCache(
+    const activeFileCache: CachedMetadata = this.app.metadataCache.getFileCache(
       activeFile
     );
 
@@ -126,11 +126,11 @@ export default class AdvancedLinksPlugin extends Plugin {
     if (this.app.metadataCache.unresolvedLinks[activeFile.path] == null) {
       return [];
     }
-    let unresolved = this.aggregate2hopLinks(activeFile);
+    const unresolved = this.aggregate2hopLinks(activeFile);
     if (unresolved == null) {
       return [];
     }
-    for (let k of Object.keys(unresolved)) {
+    for (const k of Object.keys(unresolved)) {
       if (unresolved[k].length > 0) {
         twoHopLinks[k] = unresolved[k].map((it) => FileEntity.fromPath(it));
       }
@@ -148,16 +148,16 @@ export default class AdvancedLinksPlugin extends Plugin {
   private aggregate2hopLinks(activeFile: TFile): Record<string, string[]> {
     const links = this.app.metadataCache.unresolvedLinks;
     const result: Record<string, string[]> = {};
-    let activeFileLinks = new Set(Object.keys(links[activeFile.path]));
+    const activeFileLinks = new Set(Object.keys(links[activeFile.path]));
 
-    for (let src of Object.keys(links)) {
+    for (const src of Object.keys(links)) {
       if (src == activeFile.path) {
         continue;
       }
       if (links[src] == null) {
         continue;
       }
-      for (let dest of Object.keys(links[src])) {
+      for (const dest of Object.keys(links[src])) {
         if (activeFileLinks.has(dest)) {
           if (!result[dest]) {
             result[dest] = [];
@@ -182,13 +182,13 @@ export default class AdvancedLinksPlugin extends Plugin {
 
     const links: FileEntity[] = forwardLinks.concat(backlinks);
 
-    let connectedLinks: FileEntity[] = [];
-    let newLinks: FileEntity[] = [];
-    let seen: Record<string, boolean> = {};
+    const connectedLinks: FileEntity[] = [];
+    const newLinks: FileEntity[] = [];
+    const seen: Record<string, boolean> = {};
     const twoHopLinkSets = new Set<string>(
       twoHopLinks.map((it) => it.link.title)
     );
-    for (let link of links) {
+    for (const link of links) {
       const key = link.key();
       if (seen[key]) {
         continue;
@@ -231,8 +231,8 @@ export default class AdvancedLinksPlugin extends Plugin {
     const resolvedLinks: Record<string, Record<string, number>> = this.app
       .metadataCache.resolvedLinks;
     const result: FileEntity[] = [];
-    for (let src of Object.keys(resolvedLinks)) {
-      for (let dest of Object.keys(resolvedLinks[src])) {
+    for (const src of Object.keys(resolvedLinks)) {
+      for (const dest of Object.keys(resolvedLinks[src])) {
         if (dest == name) {
           result.push(FileEntity.fromPath(src));
         }
@@ -242,7 +242,7 @@ export default class AdvancedLinksPlugin extends Plugin {
   }
 
   private async readPreview(path: string) {
-    let file: TFile | null = this.app.vault
+    const file: TFile | null = this.app.vault
       .getFiles()
       .filter((it) => {
         return it.path == path;
