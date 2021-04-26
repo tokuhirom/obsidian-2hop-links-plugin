@@ -16,8 +16,8 @@ export default class NewLinksView extends React.Component<NewLinksViewProps> {
   render(): JSX.Element {
     if (this.props.fileEntities.length > 0) {
       return (
-        <div className="advanced-links-section">
-          <div className={"advanced-links-box advanced-links-new-links-header"}>
+        <div className="twohop-links-section">
+          <div className={"twohop-links-box twohop-links-new-links-header"}>
             New links
           </div>
           {this.props.fileEntities.map((it) => {
