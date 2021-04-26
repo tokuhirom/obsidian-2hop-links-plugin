@@ -11,6 +11,12 @@ With this plugin, you can roam the digital garden freely.
 
 <img src="https://github.com/tokuhirom/obsidian-advanced-links-lugin/blob/master/docs/preview.png?raw=true" alt="preview">
 
+## Thanks to
+
+This plugin is inspired by [scrapbox](https://scrapbox.io/)
+
+This plugin was eviewed by [lishid](https://github.com/obsidianmd/obsidian-releases/pull/263)
+
 ## LICENSE
 
 The MIT License (MIT)
