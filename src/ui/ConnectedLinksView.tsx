@@ -16,11 +16,9 @@ export default class ConnectedLinksView extends React.Component<ConnectedLinksVi
   render(): JSX.Element {
     if (this.props.fileEntities.length > 0) {
       return (
-        <div className="advanced-links-section">
+        <div className="twohop-links-section">
           <div
-            className={
-              "advanced-links-box advanced-links-connected-links-header"
-            }
+            className={"twohop-links-box twohop-links-connected-links-header"}
           >
             Links
           </div>

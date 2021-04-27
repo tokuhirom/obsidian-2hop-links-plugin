@@ -30,13 +30,13 @@ export default class LinkView extends React.Component<
   render(): JSX.Element {
     return (
       <div
-        className={"advanced-links-box"}
+        className={"twohop-links-box"}
         onClick={() => this.props.onClick(this.props.fileEntity)}
       >
-        <div className="advanced-links-box-title">
+        <div className="twohop-links-box-title">
           {this.props.fileEntity.linkText}
         </div>
-        <div className={"advanced-links-box-preview"}>{this.state.preview}</div>
+        <div className={"twohop-links-box-preview"}>{this.state.preview}</div>
       </div>
     );
   }

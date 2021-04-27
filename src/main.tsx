@@ -8,25 +8,25 @@ import {
 import React from "react";
 import ReactDOM from "react-dom";
 import { FileEntity } from "./model/FileEntity";
-import { TwoHopLink } from "./model/TwoHopLink";
-import AdvancedLinksView from "./ui/AdvancedLinksView";
+import { TwohopLink } from "./model/TwohopLink";
+import TwohopLinksRootView from "./ui/TwohopLinksRootView";
 
-export default class AdvancedLinksPlugin extends Plugin {
+export default class TwohopLinksPlugin extends Plugin {
   async onload(): Promise<void> {
-    console.log("------ loading obsidian-structured-links plugin");
+    console.log("------ loading obsidian-twohop-links plugin");
 
-    this.app.workspace.on("file-open", this.renderAdvancedLinks.bind(this));
+    this.app.workspace.on("file-open", this.renderTwohopLinks.bind(this));
     this.app.metadataCache.on("resolve", async (file) => {
       const activeFile: TFile = this.app.workspace.getActiveFile();
       if (activeFile != null) {
         if (file.path == activeFile.path) {
-          await this.renderAdvancedLinks();
+          await this.renderTwohopLinks();
         }
       }
     });
   }
 
-  private async renderAdvancedLinks() {
+  private async renderTwohopLinks() {
     const markdownView: MarkdownView = this.app.workspace.getActiveViewOfType(
       MarkdownView
     );
@@ -45,7 +45,7 @@ export default class AdvancedLinksPlugin extends Plugin {
     );
 
     // Aggregate links
-    const twoHopLinks = this.getTwoHopLinks(activeFile);
+    const twoHopLinks = this.getTwohopLinks(activeFile);
     const [connectedLinks, newLinks] = await this.getLinks(
       activeFile,
       activeFileCache,
@@ -59,13 +59,13 @@ export default class AdvancedLinksPlugin extends Plugin {
     const previewEl = markdownView.containerEl.querySelector(
       ".markdown-preview-view"
     );
-    await this.injectAdvancedLinks(
+    await this.injectTwohopLinks(
       connectedLinks,
       newLinks,
       twoHopLinks,
       markdownEditingEl
     );
-    await this.injectAdvancedLinks(
+    await this.injectTwohopLinks(
       connectedLinks,
       newLinks,
       twoHopLinks,
@@ -73,20 +73,20 @@ export default class AdvancedLinksPlugin extends Plugin {
     );
   }
 
-  private async injectAdvancedLinks(
+  private async injectTwohopLinks(
     connectedLinks: FileEntity[],
     newLinks: FileEntity[],
-    twoHopLinks: TwoHopLink[],
+    twoHopLinks: TwohopLink[],
     el: Element
   ) {
-    const containerClass = "advanced-links-container";
+    const containerClass = "twohop-links-container";
     const container: HTMLElement =
       el.querySelector("." + containerClass) ||
       el.createDiv({
         cls: containerClass,
       });
     ReactDOM.render(
-      <AdvancedLinksView
+      <TwohopLinksRootView
         connectedLinks={connectedLinks}
         newLinks={newLinks}
         twoHopLinks={twoHopLinks}
@@ -110,7 +110,7 @@ export default class AdvancedLinksPlugin extends Plugin {
     );
   }
 
-  private getTwoHopLinks(activeFile: TFile): TwoHopLink[] {
+  private getTwohopLinks(activeFile: TFile): TwohopLink[] {
     const twoHopLinks: Record<string, FileEntity[]> = {};
     // no unresolved links in this file
     if (this.app.metadataCache.unresolvedLinks[activeFile.path] == null) {
@@ -129,7 +129,7 @@ export default class AdvancedLinksPlugin extends Plugin {
     return Object.keys(this.app.metadataCache.unresolvedLinks[activeFile.path])
       .map((path) => {
         return twoHopLinks[path]
-          ? new TwoHopLink(FileEntity.fromLink(path), twoHopLinks[path])
+          ? new TwohopLink(FileEntity.fromLink(path), twoHopLinks[path])
           : null;
       })
       .filter((it) => it);
@@ -162,7 +162,7 @@ export default class AdvancedLinksPlugin extends Plugin {
   private async getLinks(
     activeFile: TFile,
     activeFileCache: CachedMetadata,
-    twoHopLinks: TwoHopLink[]
+    twoHopLinks: TwohopLink[]
   ): Promise<[FileEntity[], FileEntity[]]> {
     const forwardLinks: FileEntity[] = this.getForwardLinks(
       activeFile,
