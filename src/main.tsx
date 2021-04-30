@@ -4,8 +4,6 @@ import {
   Plugin,
   TAbstractFile,
   TFile,
-  fuzzySearch,
-  prepareQuery,
 } from "obsidian";
 import React from "react";
 import ReactDOM from "react-dom";
@@ -87,6 +85,7 @@ export default class TwohopLinksPlugin extends Plugin {
     if (activeFileCache.tags) {
       let activeFileTagSet = new Set(activeFileCache.tags.map((it) => it.tag));
       const tagMap: Record<string, FileEntity[]> = {};
+      const seen: Record<string, boolean> = {};
       for (let markdownFile of this.app.vault.getMarkdownFiles()) {
         if (markdownFile == activeFile) {
           continue;
@@ -101,7 +100,10 @@ export default class TwohopLinksPlugin extends Plugin {
             if (!tagMap[tag.tag]) {
               tagMap[tag.tag] = [];
             }
-            tagMap[tag.tag].push(FileEntity.fromPath(markdownFile.path));
+            if (!seen[markdownFile.path]) {
+              tagMap[tag.tag].push(FileEntity.fromPath(markdownFile.path));
+              seen[markdownFile.path] = true;
+            }
           }
         }
       }
