@@ -12,7 +12,7 @@ import ReactDOM from "react-dom";
 import { FileEntity } from "./model/FileEntity";
 import { TwohopLink } from "./model/TwohopLink";
 import TwohopLinksRootView from "./ui/TwohopLinksRootView";
-import {TagLinks} from "./model/TagLinks";
+import { TagLinks } from "./model/TagLinks";
 
 export default class TwohopLinksPlugin extends Plugin {
   async onload(): Promise<void> {
@@ -55,7 +55,7 @@ export default class TwohopLinksPlugin extends Plugin {
       twoHopLinks
     );
 
-    const tagLinksList = this.getTagLinksList(activeFile, activeFileCache)
+    const tagLinksList = this.getTagLinksList(activeFile, activeFileCache);
 
     // insert links to the footer
     const markdownEditingEl = markdownView.containerEl.querySelector(
@@ -80,28 +80,35 @@ export default class TwohopLinksPlugin extends Plugin {
     );
   }
 
-  getTagLinksList(activeFile: TFile, activeFileCache: CachedMetadata): TagLinks[] {
+  getTagLinksList(
+    activeFile: TFile,
+    activeFileCache: CachedMetadata
+  ): TagLinks[] {
     if (activeFileCache.tags) {
-      let activeFileTagSet =  new Set(activeFileCache.tags.map(it => it.tag))
-      const tagMap: Record<string, FileEntity[]> = {}
+      let activeFileTagSet = new Set(activeFileCache.tags.map((it) => it.tag));
+      const tagMap: Record<string, FileEntity[]> = {};
       for (let markdownFile of this.app.vault.getMarkdownFiles()) {
         if (markdownFile == activeFile) {
           continue;
         }
-        const cachedMetadata = this.app.metadataCache.getFileCache(markdownFile)
+        const cachedMetadata = this.app.metadataCache.getFileCache(
+          markdownFile
+        );
         if (cachedMetadata && cachedMetadata.tags) {
-          for (let tag of cachedMetadata.tags.filter(it => activeFileTagSet.has(it.tag))) {
+          for (let tag of cachedMetadata.tags.filter((it) =>
+            activeFileTagSet.has(it.tag)
+          )) {
             if (!tagMap[tag.tag]) {
-              tagMap[tag.tag] = []
+              tagMap[tag.tag] = [];
             }
-            tagMap[tag.tag].push(FileEntity.fromPath(markdownFile.path))
+            tagMap[tag.tag].push(FileEntity.fromPath(markdownFile.path));
           }
         }
       }
 
       const tagLinksList: TagLinks[] = [];
       for (let tagMapKey of Object.keys(tagMap)) {
-        tagLinksList.push(new TagLinks(tagMapKey, tagMap[tagMapKey]))
+        tagLinksList.push(new TagLinks(tagMapKey, tagMap[tagMapKey]));
       }
       return tagLinksList;
     }

@@ -5,7 +5,7 @@ import { FileEntity } from "../model/FileEntity";
 import TwohopLinksView from "./TwohopLinksView";
 import ConnectedLinksView from "./ConnectedLinksView";
 import NewLinksView from "./NewLinksView";
-import {TagLinks} from "../model/TagLinks";
+import { TagLinks } from "../model/TagLinks";
 import TagLinksListView from "./TagLinksListView";
 
 interface TwohopLinksRootViewProps {
@@ -41,10 +41,10 @@ export default class TwohopLinksRootView extends React.Component<TwohopLinksRoot
           getPreview={this.props.getPreview}
         />
         <TagLinksListView
-            tagLinksList={this.props.tagLinksList}
-            onClick={this.props.onClick}
-            getPreview={this.props.getPreview}
-          />
+          tagLinksList={this.props.tagLinksList}
+          onClick={this.props.onClick}
+          getPreview={this.props.getPreview}
+        />
       </div>
     );
   }
