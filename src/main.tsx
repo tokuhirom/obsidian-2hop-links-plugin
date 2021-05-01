@@ -83,7 +83,9 @@ export default class TwohopLinksPlugin extends Plugin {
     activeFileCache: CachedMetadata
   ): TagLinks[] {
     if (activeFileCache.tags) {
-      const activeFileTagSet = new Set(activeFileCache.tags.map((it) => it.tag));
+      const activeFileTagSet = new Set(
+        activeFileCache.tags.map((it) => it.tag)
+      );
       const tagMap: Record<string, FileEntity[]> = {};
       const seen: Record<string, boolean> = {};
       for (const markdownFile of this.app.vault.getMarkdownFiles()) {
