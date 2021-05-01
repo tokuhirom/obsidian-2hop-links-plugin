@@ -1,5 +1,3 @@
-import { TwohopLink } from "../model/TwohopLink";
-
 import React from "react";
 import { FileEntity } from "../model/FileEntity";
 import LinkView from "./LinkView";

@@ -83,10 +83,10 @@ export default class TwohopLinksPlugin extends Plugin {
     activeFileCache: CachedMetadata
   ): TagLinks[] {
     if (activeFileCache.tags) {
-      let activeFileTagSet = new Set(activeFileCache.tags.map((it) => it.tag));
+      const activeFileTagSet = new Set(activeFileCache.tags.map((it) => it.tag));
       const tagMap: Record<string, FileEntity[]> = {};
       const seen: Record<string, boolean> = {};
-      for (let markdownFile of this.app.vault.getMarkdownFiles()) {
+      for (const markdownFile of this.app.vault.getMarkdownFiles()) {
         if (markdownFile == activeFile) {
           continue;
         }
@@ -94,7 +94,7 @@ export default class TwohopLinksPlugin extends Plugin {
           markdownFile
         );
         if (cachedMetadata && cachedMetadata.tags) {
-          for (let tag of cachedMetadata.tags.filter((it) =>
+          for (const tag of cachedMetadata.tags.filter((it) =>
             activeFileTagSet.has(it.tag)
           )) {
             if (!tagMap[tag.tag]) {
@@ -109,7 +109,7 @@ export default class TwohopLinksPlugin extends Plugin {
       }
 
       const tagLinksList: TagLinks[] = [];
-      for (let tagMapKey of Object.keys(tagMap)) {
+      for (const tagMapKey of Object.keys(tagMap)) {
         tagLinksList.push(new TagLinks(tagMapKey, tagMap[tagMapKey]));
       }
       return tagLinksList;
