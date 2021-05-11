@@ -3,12 +3,15 @@ export class FileEntity {
   public linkText: string;
 
   constructor(sourcePath: string, linkText: string) {
+    if (linkText == null) {
+      throw new Error("linkText should not be null");
+    }
     this.sourcePath = sourcePath;
     this.linkText = linkText;
   }
 
   key(): string {
-    return this.sourcePath != null ? this.sourcePath : this.linkText;
+    return this.linkText;
   }
 
   static fromLink(link: string): FileEntity {

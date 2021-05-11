@@ -14,7 +14,7 @@ interface TwohopLinksRootViewProps {
   twoHopLinks: TwohopLink[];
   tagLinksList: TagLinks[];
   onClick: (fileEntity: FileEntity) => void;
-  getPreview: (path: string) => Promise<string>;
+  getPreview: (fileEntity: FileEntity) => Promise<string>;
 }
 
 export default class TwohopLinksRootView extends React.Component<TwohopLinksRootViewProps> {

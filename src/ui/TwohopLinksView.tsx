@@ -7,7 +7,7 @@ import LinkView from "./LinkView";
 interface TwohopLinksViewProps {
   twoHopLinks: TwohopLink[];
   onClick: (fileEntity: FileEntity) => void;
-  getPreview: (path: string) => Promise<string>;
+  getPreview: (fileEntity: FileEntity) => Promise<string>;
 }
 
 export default class TwohopLinksView extends React.Component<TwohopLinksViewProps> {

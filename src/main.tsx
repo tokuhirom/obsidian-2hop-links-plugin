@@ -1,10 +1,4 @@
-import {
-  CachedMetadata,
-  MarkdownView,
-  Plugin,
-  TAbstractFile,
-  TFile,
-} from "obsidian";
+import { CachedMetadata, MarkdownView, Plugin, TFile } from "obsidian";
 import React from "react";
 import ReactDOM from "react-dom";
 import { FileEntity } from "./model/FileEntity";
@@ -283,9 +277,12 @@ export default class TwohopLinksPlugin extends Plugin {
     return result;
   }
 
-  private async readPreview(path: string) {
-    const file: TAbstractFile = this.app.vault.getAbstractFileByPath(path);
-    if (file == null || !(file instanceof TFile)) {
+  private async readPreview(fileEntity: FileEntity) {
+    const file = this.app.metadataCache.getFirstLinkpathDest(
+      fileEntity.linkText,
+      fileEntity.sourcePath
+    );
+    if (file == null) {
       return "";
     }
     const content = await this.app.vault.read(file);

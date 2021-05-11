@@ -6,7 +6,7 @@ import { TagLinks } from "../model/TagLinks";
 interface TagLinksListViewProps {
   tagLinksList: TagLinks[];
   onClick: (fileEntity: FileEntity) => void;
-  getPreview: (path: string) => Promise<string>;
+  getPreview: (fileEntity: FileEntity) => Promise<string>;
 }
 
 export default class TagLinksListView extends React.Component<TagLinksListViewProps> {
@@ -25,7 +25,7 @@ export default class TagLinksListView extends React.Component<TagLinksListViewPr
             {link.fileEntities.map((it) => (
               <LinkView
                 fileEntity={it}
-                key={it.key()}
+                key={link.tag + it.key()}
                 onClick={this.props.onClick}
                 getPreview={this.props.getPreview}
               />
