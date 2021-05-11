@@ -6,11 +6,11 @@ With this plugin, you can roam the digital garden freely.
 
 ## Show links under the editor.
 
-<img src="https://github.com/tokuhirom/obsidian-2hop-links-lugin/blob/master/docs/img.png?raw=true" alt="links">
+<img src="https://raw.githubusercontent.com/tokuhirom/obsidian-2hop-links-plugin/master/docs/img.png" alt="links">
 
 ## Preview mode is also supported.
 
-<img src="https://github.com/tokuhirom/obsidian-2hop-links-lugin/blob/master/docs/preview.png?raw=true" alt="preview">
+<img src="https://raw.githubusercontent.com/tokuhirom/obsidian-2hop-links-plugin/master/docs/preview.png" alt="preview">
 
 ## Thanks to
 
