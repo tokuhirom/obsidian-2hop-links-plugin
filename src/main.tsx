@@ -11,6 +11,7 @@ import { FileEntity } from "./model/FileEntity";
 import { TwohopLink } from "./model/TwohopLink";
 import TwohopLinksRootView from "./ui/TwohopLinksRootView";
 import { TagLinks } from "./model/TagLinks";
+import { path2linkText } from "./utils";
 
 export default class TwohopLinksPlugin extends Plugin {
   async onload(): Promise<void> {
@@ -100,7 +101,8 @@ export default class TwohopLinksPlugin extends Plugin {
               tagMap[tag.tag] = [];
             }
             if (!seen[markdownFile.path]) {
-              tagMap[tag.tag].push(FileEntity.fromPath(markdownFile.path));
+              const linkText = path2linkText(markdownFile.path);
+              tagMap[tag.tag].push(new FileEntity(activeFile.path, linkText));
               seen[markdownFile.path] = true;
             }
           }
@@ -167,7 +169,10 @@ export default class TwohopLinksPlugin extends Plugin {
     }
     for (const k of Object.keys(unresolved)) {
       if (unresolved[k].length > 0) {
-        twoHopLinks[k] = unresolved[k].map((it) => FileEntity.fromPath(it));
+        twoHopLinks[k] = unresolved[k].map((it) => {
+          const linkText = path2linkText(it);
+          return new FileEntity(activeFile.path, linkText);
+        });
       }
     }
 
@@ -213,7 +218,7 @@ export default class TwohopLinksPlugin extends Plugin {
       activeFile,
       activeFileCache
     );
-    const backlinks: FileEntity[] = this.getBackLinks(activeFile.path);
+    const backlinks: FileEntity[] = this.getBackLinks(activeFile);
 
     const links: FileEntity[] = forwardLinks.concat(backlinks);
 
@@ -262,14 +267,16 @@ export default class TwohopLinksPlugin extends Plugin {
     return [];
   }
 
-  private getBackLinks(name: string): FileEntity[] {
+  private getBackLinks(activeFile: TFile): FileEntity[] {
+    const name = activeFile.path;
     const resolvedLinks: Record<string, Record<string, number>> =
       this.app.metadataCache.resolvedLinks;
     const result: FileEntity[] = [];
     for (const src of Object.keys(resolvedLinks)) {
       for (const dest of Object.keys(resolvedLinks[src])) {
         if (dest == name) {
-          result.push(FileEntity.fromPath(src));
+          const linkText = path2linkText(src);
+          result.push(new FileEntity(activeFile.path, linkText));
         }
       }
     }

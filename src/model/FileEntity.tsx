@@ -1,17 +1,10 @@
-import { path2linkText } from "../utils";
-
 export class FileEntity {
   public sourcePath: string;
   public linkText: string;
 
-  constructor(path: string, linkText: string) {
-    this.sourcePath = path;
+  constructor(sourcePath: string, linkText: string) {
+    this.sourcePath = sourcePath;
     this.linkText = linkText;
-  }
-
-  static fromPath(path: string): FileEntity {
-    const linkText = path2linkText(path);
-    return new FileEntity(path, linkText);
   }
 
   key(): string {
