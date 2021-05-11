@@ -4,7 +4,7 @@ import LinkView from "./LinkView";
 
 interface NewLinksViewProps {
   fileEntities: FileEntity[];
-  onClick: (fileEntity: FileEntity) => void;
+  onClick: (fileEntity: FileEntity) => Promise<void>;
   getPreview: (fileEntity: FileEntity) => Promise<string>;
 }
 

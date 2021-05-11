@@ -40,9 +40,19 @@
 }
 
 /* two hop links */
-.twohop-links-twohop-header {
+.twohop-links-resolved .twohop-links-twohop-header {
   clear: both;
   background-color: burlywood;
+}
+.twohop-links-unresolved .twohop-links-twohop-header {
+  clear: both;
+  background-color: dimgrey;
+}
+
+/* tags */
+.twohop-links-tag-header {
+  clear: both;
+  background-color: darkseagreen;
 }
 
 /* new links */

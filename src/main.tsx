@@ -39,11 +39,18 @@ export default class TwohopLinksPlugin extends Plugin {
       this.app.metadataCache.getFileCache(activeFile);
 
     // Aggregate links
-    const twoHopLinks = this.getTwohopLinks(activeFile);
+    const unresolvedTwoHopLinks = this.getTwohopLinks(
+      activeFile,
+      this.app.metadataCache.unresolvedLinks
+    );
+    const resolvedTwoHopLinks = this.getTwohopLinks(
+      activeFile,
+      this.app.metadataCache.resolvedLinks
+    );
     const [connectedLinks, newLinks] = await this.getLinks(
       activeFile,
       activeFileCache,
-      twoHopLinks
+      unresolvedTwoHopLinks.concat(resolvedTwoHopLinks)
     );
 
     const tagLinksList = this.getTagLinksList(activeFile, activeFileCache);
@@ -58,14 +65,16 @@ export default class TwohopLinksPlugin extends Plugin {
     await this.injectTwohopLinks(
       connectedLinks,
       newLinks,
-      twoHopLinks,
+      unresolvedTwoHopLinks,
+      resolvedTwoHopLinks,
       tagLinksList,
       markdownEditingEl
     );
     await this.injectTwohopLinks(
       connectedLinks,
       newLinks,
-      twoHopLinks,
+      unresolvedTwoHopLinks,
+      resolvedTwoHopLinks,
       tagLinksList,
       previewEl
     );
@@ -115,7 +124,8 @@ export default class TwohopLinksPlugin extends Plugin {
   private async injectTwohopLinks(
     connectedLinks: FileEntity[],
     newLinks: FileEntity[],
-    twoHopLinks: TwohopLink[],
+    unresolvedTwoHopLinks: TwohopLink[],
+    resolvedTwoHopLinks: TwohopLink[],
     tagLinksList: TagLinks[],
     el: Element
   ) {
@@ -129,7 +139,8 @@ export default class TwohopLinksPlugin extends Plugin {
       <TwohopLinksRootView
         connectedLinks={connectedLinks}
         newLinks={newLinks}
-        twoHopLinks={twoHopLinks}
+        unresolvedTwoHopLinks={unresolvedTwoHopLinks}
+        resolvedTwoHopLinks={resolvedTwoHopLinks}
         tagLinksList={tagLinksList}
         onClick={this.openFile.bind(this)}
         getPreview={this.readPreview.bind(this)}
@@ -138,26 +149,36 @@ export default class TwohopLinksPlugin extends Plugin {
     );
   }
 
-  private async openFile(fileEntity: FileEntity) {
-    if (fileEntity.sourcePath == null) {
+  private async openFile(fileEntity: FileEntity): Promise<void> {
+    console.debug(
+      `Open file: linkText='${fileEntity.linkText}', sourcePath='${fileEntity.sourcePath}'`
+    );
+    const file = this.app.metadataCache.getFirstLinkpathDest(
+      fileEntity.linkText,
+      fileEntity.sourcePath
+    );
+    if (file == null) {
       if (!confirm(`Create new file: ${fileEntity.linkText}?`)) {
         console.log("Canceled!!");
-        return false;
+        return;
       }
     }
-    await this.app.workspace.openLinkText(
+    return this.app.workspace.openLinkText(
       fileEntity.linkText,
       fileEntity.sourcePath
     );
   }
 
-  private getTwohopLinks(activeFile: TFile): TwohopLink[] {
+  private getTwohopLinks(
+    activeFile: TFile,
+    links: Record<string, Record<string, number>>
+  ): TwohopLink[] {
     const twoHopLinks: Record<string, FileEntity[]> = {};
     // no unresolved links in this file
-    if (this.app.metadataCache.unresolvedLinks[activeFile.path] == null) {
+    if (links[activeFile.path] == null) {
       return [];
     }
-    const unresolved = this.aggregate2hopLinks(activeFile);
+    const unresolved = this.aggregate2hopLinks(activeFile, links);
     if (unresolved == null) {
       return [];
     }
@@ -170,17 +191,22 @@ export default class TwohopLinksPlugin extends Plugin {
       }
     }
 
-    return Object.keys(this.app.metadataCache.unresolvedLinks[activeFile.path])
+    return Object.keys(links[activeFile.path])
       .map((path) => {
         return twoHopLinks[path]
-          ? new TwohopLink(FileEntity.fromLink(path), twoHopLinks[path])
+          ? new TwohopLink(
+              new FileEntity(activeFile.path, path),
+              twoHopLinks[path]
+            )
           : null;
       })
       .filter((it) => it);
   }
 
-  private aggregate2hopLinks(activeFile: TFile): Record<string, string[]> {
-    const links = this.app.metadataCache.unresolvedLinks;
+  private aggregate2hopLinks(
+    activeFile: TFile,
+    links: Record<string, Record<string, number>>
+  ): Record<string, string[]> {
     const result: Record<string, string[]> = {};
     const activeFileLinks = new Set(Object.keys(links[activeFile.path]));
 
