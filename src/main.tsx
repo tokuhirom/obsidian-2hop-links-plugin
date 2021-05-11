@@ -28,9 +28,8 @@ export default class TwohopLinksPlugin extends Plugin {
   }
 
   private async renderTwohopLinks() {
-    const markdownView: MarkdownView = this.app.workspace.getActiveViewOfType(
-      MarkdownView
-    );
+    const markdownView: MarkdownView =
+      this.app.workspace.getActiveViewOfType(MarkdownView);
     if (markdownView == null) {
       return;
     }
@@ -41,9 +40,8 @@ export default class TwohopLinksPlugin extends Plugin {
       return; // Currently focusing window is not related to a file.
     }
 
-    const activeFileCache: CachedMetadata = this.app.metadataCache.getFileCache(
-      activeFile
-    );
+    const activeFileCache: CachedMetadata =
+      this.app.metadataCache.getFileCache(activeFile);
 
     // Aggregate links
     const twoHopLinks = this.getTwohopLinks(activeFile);
@@ -92,9 +90,8 @@ export default class TwohopLinksPlugin extends Plugin {
         if (markdownFile == activeFile) {
           continue;
         }
-        const cachedMetadata = this.app.metadataCache.getFileCache(
-          markdownFile
-        );
+        const cachedMetadata =
+          this.app.metadataCache.getFileCache(markdownFile);
         if (cachedMetadata && cachedMetadata.tags) {
           for (const tag of cachedMetadata.tags.filter((it) =>
             activeFileTagSet.has(it.tag)
@@ -266,8 +263,8 @@ export default class TwohopLinksPlugin extends Plugin {
   }
 
   private getBackLinks(name: string): FileEntity[] {
-    const resolvedLinks: Record<string, Record<string, number>> = this.app
-      .metadataCache.resolvedLinks;
+    const resolvedLinks: Record<string, Record<string, number>> =
+      this.app.metadataCache.resolvedLinks;
     const result: FileEntity[] = [];
     for (const src of Object.keys(resolvedLinks)) {
       for (const dest of Object.keys(resolvedLinks[src])) {

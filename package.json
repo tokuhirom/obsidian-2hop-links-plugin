@@ -5,7 +5,8 @@
   "main": "main.js",
   "scripts": {
     "dev": "rollup --config rollup.config.js -w",
-    "build": "rollup --config rollup.config.js --environment BUILD:production"
+    "build": "rollup --config rollup.config.js --environment BUILD:production",
+    "prettier": "prettier --write **/*.{tsx,md,ts}"
   },
   "keywords": [],
   "author": "",
@@ -28,6 +29,7 @@
     "@typescript-eslint/parser": "^4.22.0",
     "eslint": "^7.25.0",
     "obsidian": "^0.12.0",
+    "prettier": "^2.3.0",
     "rollup": "^2.32.1",
     "tslib": "^2.2.0",
     "typescript": "^4.2.4"
