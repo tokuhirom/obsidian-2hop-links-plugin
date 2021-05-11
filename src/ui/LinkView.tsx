@@ -3,7 +3,7 @@ import { FileEntity } from "../model/FileEntity";
 
 interface LinkViewProps {
   fileEntity: FileEntity;
-  onClick: (fileEntity: FileEntity) => void;
+  onClick: (fileEntity: FileEntity) => Promise<void>;
   getPreview: (fileEntity: FileEntity) => Promise<string>;
 }
 
@@ -29,7 +29,9 @@ export default class LinkView extends React.Component<
     return (
       <div
         className={"twohop-links-box"}
-        onClick={() => this.props.onClick(this.props.fileEntity)}
+        onClick={async () => this.props.onClick(this.props.fileEntity)}
+        // To overwrite CodeMirror's handler
+        onMouseDown={async () => this.props.onClick(this.props.fileEntity)}
       >
         <div className="twohop-links-box-title">
           {this.props.fileEntity.linkText}

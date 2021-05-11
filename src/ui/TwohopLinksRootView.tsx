@@ -11,9 +11,10 @@ import TagLinksListView from "./TagLinksListView";
 interface TwohopLinksRootViewProps {
   connectedLinks: FileEntity[];
   newLinks: FileEntity[];
-  twoHopLinks: TwohopLink[];
+  resolvedTwoHopLinks: TwohopLink[];
+  unresolvedTwoHopLinks: TwohopLink[];
   tagLinksList: TagLinks[];
-  onClick: (fileEntity: FileEntity) => void;
+  onClick: (fileEntity: FileEntity) => Promise<void>;
   getPreview: (fileEntity: FileEntity) => Promise<string>;
 }
 
@@ -31,7 +32,14 @@ export default class TwohopLinksRootView extends React.Component<TwohopLinksRoot
           getPreview={this.props.getPreview}
         />
         <TwohopLinksView
-          twoHopLinks={this.props.twoHopLinks}
+          twoHopLinks={this.props.unresolvedTwoHopLinks}
+          resolved={false}
+          onClick={this.props.onClick}
+          getPreview={this.props.getPreview}
+        />
+        <TwohopLinksView
+          twoHopLinks={this.props.resolvedTwoHopLinks}
+          resolved={true}
           onClick={this.props.onClick}
           getPreview={this.props.getPreview}
         />

@@ -6,7 +6,8 @@ import LinkView from "./LinkView";
 
 interface TwohopLinksViewProps {
   twoHopLinks: TwohopLink[];
-  onClick: (fileEntity: FileEntity) => void;
+  resolved: boolean;
+  onClick: (fileEntity: FileEntity) => Promise<void>;
   getPreview: (fileEntity: FileEntity) => Promise<string>;
 }
 
@@ -19,17 +20,26 @@ export default class TwohopLinksView extends React.Component<TwohopLinksViewProp
     return (
       <div>
         {this.props.twoHopLinks.map((link) => (
-          <div className="twohop-links-section" key={link.link.sourcePath}>
+          <div
+            className={
+              "twohop-links-section " +
+              (this.props.resolved
+                ? "twohop-links-resolved"
+                : "twohop-links-unresolved")
+            }
+            key={link.link.linkText}
+          >
             <div
               className={"twohop-links-twohop-header twohop-links-box"}
-              onClick={() => this.props.onClick(link.link)}
+              onClick={async () => this.props.onClick(link.link)}
+              onMouseDown={async () => this.props.onClick(link.link)}
             >
-              {link.link.linkText}
+              {link.link.linkText.replace(/\.md$/, "")}
             </div>
             {link.fileEntities.map((it) => (
               <LinkView
                 fileEntity={it}
-                key={it.key()}
+                key={link.link.linkText + it.key()}
                 onClick={this.props.onClick}
                 getPreview={this.props.getPreview}
               />

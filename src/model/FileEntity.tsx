@@ -13,8 +13,4 @@ export class FileEntity {
   key(): string {
     return this.linkText;
   }
-
-  static fromLink(link: string): FileEntity {
-    return new FileEntity(null, link);
-  }
 }
