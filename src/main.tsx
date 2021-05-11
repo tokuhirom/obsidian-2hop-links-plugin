@@ -9,7 +9,7 @@ import { path2linkText } from "./utils";
 
 export default class TwohopLinksPlugin extends Plugin {
   async onload(): Promise<void> {
-    console.log("------ loading obsidian-twohop-links plugin");
+    console.debug("------ loading obsidian-twohop-links plugin");
 
     this.app.workspace.on("file-open", this.renderTwohopLinks.bind(this));
     this.app.metadataCache.on("resolve", async (file) => {
