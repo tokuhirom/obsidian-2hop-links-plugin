@@ -4,7 +4,7 @@ import { FileEntity } from "../model/FileEntity";
 interface LinkViewProps {
   fileEntity: FileEntity;
   onClick: (fileEntity: FileEntity) => void;
-  getPreview: (path: string) => Promise<string>;
+  getPreview: (fileEntity: FileEntity) => Promise<string>;
 }
 
 interface LinkViewState {
@@ -21,9 +21,7 @@ export default class LinkView extends React.Component<
   }
 
   async componentDidMount(): Promise<void> {
-    const preview = await this.props.getPreview(
-      this.props.fileEntity.sourcePath
-    );
+    const preview = await this.props.getPreview(this.props.fileEntity);
     this.setState({ preview });
   }
 

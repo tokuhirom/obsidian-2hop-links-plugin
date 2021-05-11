@@ -5,7 +5,7 @@ import LinkView from "./LinkView";
 interface NewLinksViewProps {
   fileEntities: FileEntity[];
   onClick: (fileEntity: FileEntity) => void;
-  getPreview: (path: string) => Promise<string>;
+  getPreview: (fileEntity: FileEntity) => Promise<string>;
 }
 
 export default class NewLinksView extends React.Component<NewLinksViewProps> {
