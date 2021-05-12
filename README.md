@@ -12,6 +12,15 @@ With this plugin, you can roam the digital garden freely.
 
 <img src="https://raw.githubusercontent.com/tokuhirom/obsidian-2hop-links-plugin/master/docs/preview.png" alt="preview">
 
+## Commands
+
+You can use following commands. You can bind these commands to a keyboard shortcut.
+
+| Command            | Description                  |
+| ------------------ | ---------------------------- |
+| Enable 2hop links  | Enable 2hop links temporary  |
+| Disable 2hop links | Disable 2hop links temporary |
+
 ## Thanks to
 
 This plugin is inspired by [scrapbox](https://scrapbox.io/)
@@ -20,7 +29,7 @@ This plugin is inspired by [scrapbox](https://scrapbox.io/)
 
 [masui san, the inventor of 2hop link](https://twitter.com/masui/status/1035090656371175424)
 
-This plugin was eviewed by [lishid](https://github.com/obsidianmd/obsidian-releases/pull/263)
+This plugin was reviewed by [lishid](https://github.com/obsidianmd/obsidian-releases/pull/263)
 
 ## Changes
 
