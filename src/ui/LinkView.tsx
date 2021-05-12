@@ -5,6 +5,8 @@ interface LinkViewProps {
   fileEntity: FileEntity;
   onClick: (fileEntity: FileEntity) => Promise<void>;
   getPreview: (fileEntity: FileEntity) => Promise<string>;
+  boxWidth: string;
+  boxHeight: string;
 }
 
 interface LinkViewState {
@@ -32,6 +34,7 @@ export default class LinkView extends React.Component<
         onClick={async () => this.props.onClick(this.props.fileEntity)}
         // To overwrite CodeMirror's handler
         onMouseDown={async () => this.props.onClick(this.props.fileEntity)}
+        style={{ width: this.props.boxWidth, height: this.props.boxHeight }}
       >
         <div className="twohop-links-box-title">
           {this.props.fileEntity.linkText}

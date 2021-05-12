@@ -6,6 +6,8 @@ interface ConnectedLinksViewProps {
   fileEntities: FileEntity[];
   onClick: (fileEntity: FileEntity) => Promise<void>;
   getPreview: (fileEntity: FileEntity) => Promise<string>;
+  boxWidth: string;
+  boxHeight: string;
 }
 
 export default class ConnectedLinksView extends React.Component<ConnectedLinksViewProps> {
@@ -19,6 +21,10 @@ export default class ConnectedLinksView extends React.Component<ConnectedLinksVi
         <div className="twohop-links-section">
           <div
             className={"twohop-links-box twohop-links-connected-links-header"}
+            style={{
+              width: this.props.boxWidth,
+              height: this.props.boxHeight,
+            }}
           >
             Links
           </div>
@@ -29,6 +35,8 @@ export default class ConnectedLinksView extends React.Component<ConnectedLinksVi
                 key={it.key()}
                 onClick={this.props.onClick}
                 getPreview={this.props.getPreview}
+                boxWidth={this.props.boxWidth}
+                boxHeight={this.props.boxHeight}
               />
             );
           })}

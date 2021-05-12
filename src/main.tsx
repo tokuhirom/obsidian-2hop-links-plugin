@@ -6,10 +6,19 @@ import { TwohopLink } from "./model/TwohopLink";
 import TwohopLinksRootView from "./ui/TwohopLinksRootView";
 import { TagLinks } from "./model/TagLinks";
 import { path2linkText } from "./utils";
+import {
+  DEFAULT_SETTINGS,
+  TwohopPluginSettings,
+  TwohopSettingTab,
+} from "./Settings";
 
 export default class TwohopLinksPlugin extends Plugin {
+  settings: TwohopPluginSettings;
+
   async onload(): Promise<void> {
     console.debug("------ loading obsidian-twohop-links plugin");
+
+    await this.loadSettings();
 
     this.app.workspace.on("file-open", this.renderTwohopLinks.bind(this));
     this.app.metadataCache.on("resolve", async (file) => {
@@ -20,6 +29,8 @@ export default class TwohopLinksPlugin extends Plugin {
         }
       }
     });
+
+    this.addSettingTab(new TwohopSettingTab(this.app, this));
   }
 
   private async renderTwohopLinks() {
@@ -144,6 +155,8 @@ export default class TwohopLinksPlugin extends Plugin {
         tagLinksList={tagLinksList}
         onClick={this.openFile.bind(this)}
         getPreview={this.readPreview.bind(this)}
+        boxWidth={this.settings.boxWidth}
+        boxHeight={this.settings.boxHeight}
       />,
       container
     );
@@ -327,5 +340,13 @@ export default class TwohopLinksPlugin extends Plugin {
 
   onunload(): void {
     console.log("unloading plugin");
+  }
+
+  private async loadSettings(): Promise<void> {
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+  }
+
+  async saveSettings(): Promise<void> {
+    return this.saveData(this.settings);
   }
 }
