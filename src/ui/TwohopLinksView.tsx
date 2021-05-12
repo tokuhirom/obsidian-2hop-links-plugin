@@ -9,6 +9,8 @@ interface TwohopLinksViewProps {
   resolved: boolean;
   onClick: (fileEntity: FileEntity) => Promise<void>;
   getPreview: (fileEntity: FileEntity) => Promise<string>;
+  boxWidth: string;
+  boxHeight: string;
 }
 
 export default class TwohopLinksView extends React.Component<TwohopLinksViewProps> {
@@ -33,6 +35,10 @@ export default class TwohopLinksView extends React.Component<TwohopLinksViewProp
               className={"twohop-links-twohop-header twohop-links-box"}
               onClick={async () => this.props.onClick(link.link)}
               onMouseDown={async () => this.props.onClick(link.link)}
+              style={{
+                width: this.props.boxWidth,
+                height: this.props.boxHeight,
+              }}
             >
               {link.link.linkText.replace(/\.md$/, "")}
             </div>
@@ -42,6 +48,8 @@ export default class TwohopLinksView extends React.Component<TwohopLinksViewProp
                 key={link.link.linkText + it.key()}
                 onClick={this.props.onClick}
                 getPreview={this.props.getPreview}
+                boxWidth={this.props.boxWidth}
+                boxHeight={this.props.boxHeight}
               />
             ))}
           </div>

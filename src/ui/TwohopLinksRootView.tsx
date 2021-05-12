@@ -16,6 +16,8 @@ interface TwohopLinksRootViewProps {
   tagLinksList: TagLinks[];
   onClick: (fileEntity: FileEntity) => Promise<void>;
   getPreview: (fileEntity: FileEntity) => Promise<string>;
+  boxWidth: string;
+  boxHeight: string;
 }
 
 export default class TwohopLinksRootView extends React.Component<TwohopLinksRootViewProps> {
@@ -30,28 +32,38 @@ export default class TwohopLinksRootView extends React.Component<TwohopLinksRoot
           fileEntities={this.props.connectedLinks}
           onClick={this.props.onClick}
           getPreview={this.props.getPreview}
+          boxWidth={this.props.boxWidth}
+          boxHeight={this.props.boxHeight}
         />
         <TwohopLinksView
           twoHopLinks={this.props.unresolvedTwoHopLinks}
           resolved={false}
           onClick={this.props.onClick}
           getPreview={this.props.getPreview}
+          boxWidth={this.props.boxWidth}
+          boxHeight={this.props.boxHeight}
         />
         <TwohopLinksView
           twoHopLinks={this.props.resolvedTwoHopLinks}
           resolved={true}
           onClick={this.props.onClick}
           getPreview={this.props.getPreview}
+          boxWidth={this.props.boxWidth}
+          boxHeight={this.props.boxHeight}
         />
         <NewLinksView
           fileEntities={this.props.newLinks}
           onClick={this.props.onClick}
           getPreview={this.props.getPreview}
+          boxWidth={this.props.boxWidth}
+          boxHeight={this.props.boxHeight}
         />
         <TagLinksListView
           tagLinksList={this.props.tagLinksList}
           onClick={this.props.onClick}
           getPreview={this.props.getPreview}
+          boxWidth={this.props.boxWidth}
+          boxHeight={this.props.boxHeight}
         />
       </div>
     );
