@@ -22,6 +22,14 @@ This plugin is inspired by [scrapbox](https://scrapbox.io/)
 
 This plugin was eviewed by [lishid](https://github.com/obsidianmd/obsidian-releases/pull/263)
 
+## Changes
+
+ - 0.1.0 (2021-05-12)
+   - Fixed broken plugin installation(maybe) https://github.com/tokuhirom/obsidian-2hop-links-plugin/pull/11 (Reported by gorilla, iiz)
+   - Make box size configurable (Requested by iiz)
+ - 0.0.10 (2021-05-11)
+   - Re-enable resolvable 2hop links https://github.com/tokuhirom/obsidian-2hop-links-plugin/pull/7 (Reported by @kdmsnr)
+
 ## LICENSE
 
 The MIT License (MIT)
