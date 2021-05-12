@@ -12,28 +12,85 @@ import {
   TwohopSettingTab,
 } from "./Settings";
 
+const CONTAINER_CLASS = "twohop-links-container";
+
 export default class TwohopLinksPlugin extends Plugin {
   settings: TwohopPluginSettings;
+  enabled: boolean;
 
   async onload(): Promise<void> {
     console.debug("------ loading obsidian-twohop-links plugin");
 
     await this.loadSettings();
 
-    this.app.workspace.on("file-open", this.renderTwohopLinks.bind(this));
+    this.enabled = true;
+
+    this.app.workspace.on("file-open", async () => {
+      if (this.enabled) {
+        await this.renderTwohopLinks();
+      }
+    });
     this.app.metadataCache.on("resolve", async (file) => {
-      const activeFile: TFile = this.app.workspace.getActiveFile();
-      if (activeFile != null) {
-        if (file.path == activeFile.path) {
-          await this.renderTwohopLinks();
+      if (this.enabled) {
+        const activeFile: TFile = this.app.workspace.getActiveFile();
+        if (activeFile != null) {
+          if (file.path == activeFile.path) {
+            await this.renderTwohopLinks();
+          }
         }
       }
+    });
+    this.addCommand({
+      id: "enable-2hop-links",
+      name: "Enable 2hop links",
+      checkCallback: this.enable.bind(this),
+    });
+    this.addCommand({
+      id: "disable-2hop-links",
+      name: "Disable 2hop links",
+      checkCallback: this.disable.bind(this),
     });
 
     this.addSettingTab(new TwohopSettingTab(this.app, this));
   }
 
-  private async renderTwohopLinks() {
+  enable(check: boolean): boolean {
+    if (check) {
+      return !this.enabled;
+    }
+
+    this.enabled = true;
+    this.renderTwohopLinks().then(() =>
+      console.debug("Rendered two hop links")
+    );
+    return true;
+  }
+
+  disable(check: boolean): boolean {
+    if (check) {
+      return this.enabled;
+    }
+
+    this.enabled = false;
+    this.removeTwohopLinks();
+    return true;
+  }
+
+  removeTwohopLinks(): void {
+    const markdownView: MarkdownView =
+      this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (markdownView === null) {
+      return;
+    }
+    for (const element of this.getContainerElements(markdownView)) {
+      const container = element.querySelector("." + CONTAINER_CLASS);
+      if (container) {
+        container.remove();
+      }
+    }
+  }
+
+  private async renderTwohopLinks(): Promise<void> {
     const markdownView: MarkdownView =
       this.app.workspace.getActiveViewOfType(MarkdownView);
     if (markdownView == null) {
@@ -67,28 +124,26 @@ export default class TwohopLinksPlugin extends Plugin {
     const tagLinksList = this.getTagLinksList(activeFile, activeFileCache);
 
     // insert links to the footer
+    for (const element of this.getContainerElements(markdownView)) {
+      await this.injectTwohopLinks(
+        connectedLinks,
+        newLinks,
+        unresolvedTwoHopLinks,
+        resolvedTwoHopLinks,
+        tagLinksList,
+        element
+      );
+    }
+  }
+
+  getContainerElements(markdownView: MarkdownView): Element[] {
     const markdownEditingEl = markdownView.containerEl.querySelector(
       ".markdown-source-view .CodeMirror-lines"
     );
     const previewEl = markdownView.containerEl.querySelector(
       ".markdown-preview-view"
     );
-    await this.injectTwohopLinks(
-      connectedLinks,
-      newLinks,
-      unresolvedTwoHopLinks,
-      resolvedTwoHopLinks,
-      tagLinksList,
-      markdownEditingEl
-    );
-    await this.injectTwohopLinks(
-      connectedLinks,
-      newLinks,
-      unresolvedTwoHopLinks,
-      resolvedTwoHopLinks,
-      tagLinksList,
-      previewEl
-    );
+    return [markdownEditingEl, previewEl];
   }
 
   getTagLinksList(
@@ -140,11 +195,10 @@ export default class TwohopLinksPlugin extends Plugin {
     tagLinksList: TagLinks[],
     el: Element
   ) {
-    const containerClass = "twohop-links-container";
     const container: HTMLElement =
-      el.querySelector("." + containerClass) ||
+      el.querySelector("." + CONTAINER_CLASS) ||
       el.createDiv({
-        cls: containerClass,
+        cls: CONTAINER_CLASS,
       });
     ReactDOM.render(
       <TwohopLinksRootView
