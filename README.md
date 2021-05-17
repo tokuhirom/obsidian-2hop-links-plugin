@@ -33,6 +33,8 @@ This plugin was reviewed by [lishid](https://github.com/obsidianmd/obsidian-rele
 
 ## Changes
 
+- 0.4.0 (2021-05-17)
+  - no changes
 - 0.3.0 (2021-05-17)
   - Seperate the out link the in link [#16](https://github.com/tokuhirom/obsidian-2hop-links-plugin/issues/16)
     Reported by gh16683170++
