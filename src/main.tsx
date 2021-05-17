@@ -371,11 +371,27 @@ export default class TwohopLinksPlugin extends Plugin {
   }
 
   private async readPreview(fileEntity: FileEntity) {
+    // Do not read non-text files. Especially PDF file.
+    if (
+      fileEntity.linkText.match(/\.[a-z0-9_-]+$/i) &&
+      !fileEntity.linkText.match(/\.(?:md|markdown|txt|text)$/i)
+    ) {
+      console.debug(`${fileEntity.linkText} is not a plain text file`);
+      return "";
+    }
+
     const file = this.app.metadataCache.getFirstLinkpathDest(
       fileEntity.linkText,
       fileEntity.sourcePath
     );
     if (file == null) {
+      return "";
+    }
+    if (file.stat.size > 1000 * 1000) {
+      // Ignore large file
+      console.debug(
+        `File too large(${fileEntity.linkText}): ${file.stat.size}`
+      );
       return "";
     }
     const content = await this.app.vault.read(file);
