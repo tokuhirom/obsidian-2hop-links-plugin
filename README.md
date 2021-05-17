@@ -33,6 +33,13 @@ This plugin was reviewed by [lishid](https://github.com/obsidianmd/obsidian-rele
 
 ## Changes
 
+- 0.3.0 (2021-05-17)
+  - Seperate the out link the in link [#16](https://github.com/tokuhirom/obsidian-2hop-links-plugin/issues/16)
+    Reported by gh16683170++
+  - Fixed "The obsidian died when including pdf links #15
+    "[#15](https://github.com/tokuhirom/obsidian-2hop-links-plugin/issues/15)
+    Reported by gh16683170++
+  - Do not eat mousedown event with non-primary mouse button. [#19](https://github.com/tokuhirom/obsidian-2hop-links-plugin/pull/19)
 - 0.2.0 (2021-05-12)
   - Temporary enable/disable 2hop plugin view by command https://github.com/tokuhirom/obsidian-2hop-links-plugin/pull/13 (Requested by @autonomygaps)
 - 0.1.0 (2021-05-12)
