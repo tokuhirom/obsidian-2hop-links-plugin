@@ -34,7 +34,9 @@ export default class TwohopLinksView extends React.Component<TwohopLinksViewProp
             <div
               className={"twohop-links-twohop-header twohop-links-box"}
               onClick={async () => this.props.onClick(link.link)}
-              onMouseDown={async () => this.props.onClick(link.link)}
+              onMouseDown={async (event) =>
+                event.button == 0 && this.props.onClick(link.link)
+              }
               style={{
                 width: this.props.boxWidth,
                 height: this.props.boxHeight,
