@@ -9,8 +9,9 @@ import { TagLinks } from "../model/TagLinks";
 import TagLinksListView from "./TagLinksListView";
 
 interface TwohopLinksRootViewProps {
-  connectedLinks: FileEntity[];
+  forwardConnectedLinks: FileEntity[];
   newLinks: FileEntity[];
+  backwardConnectedLinks: FileEntity[];
   resolvedTwoHopLinks: TwohopLink[];
   unresolvedTwoHopLinks: TwohopLink[];
   tagLinksList: TagLinks[];
@@ -29,11 +30,22 @@ export default class TwohopLinksRootView extends React.Component<TwohopLinksRoot
     return (
       <div>
         <ConnectedLinksView
-          fileEntities={this.props.connectedLinks}
+          fileEntities={this.props.forwardConnectedLinks}
           onClick={this.props.onClick}
           getPreview={this.props.getPreview}
           boxWidth={this.props.boxWidth}
           boxHeight={this.props.boxHeight}
+          title={"Links"}
+          className={"twohop-links-forward-links"}
+        />
+        <ConnectedLinksView
+          fileEntities={this.props.backwardConnectedLinks}
+          onClick={this.props.onClick}
+          getPreview={this.props.getPreview}
+          boxWidth={this.props.boxWidth}
+          boxHeight={this.props.boxHeight}
+          title={"Back Links"}
+          className={"twohop-links-back-links"}
         />
         <TwohopLinksView
           twoHopLinks={this.props.unresolvedTwoHopLinks}
