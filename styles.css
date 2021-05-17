@@ -33,8 +33,11 @@
 }
 
 /* connected links */
-.twohop-links-connected-links-header {
+.twohop-links-forward-links .twohop-links-connected-links-header {
   background-color: darkkhaki;
+}
+.twohop-links-back-links .twohop-links-connected-links-header {
+  background-color: salmon;
 }
 
 /* two hop links */

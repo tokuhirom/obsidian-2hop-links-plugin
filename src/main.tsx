@@ -106,28 +106,43 @@ export default class TwohopLinksPlugin extends Plugin {
     const activeFileCache: CachedMetadata =
       this.app.metadataCache.getFileCache(activeFile);
 
+    // Aggregate forward links
+    const forwardLinks = this.getForwardLinks(activeFile, activeFileCache);
+    const forwardLinkSet = new Set<string>(
+      forwardLinks.map((it) => it.linkText)
+    );
+
     // Aggregate links
     const unresolvedTwoHopLinks = this.getTwohopLinks(
       activeFile,
-      this.app.metadataCache.unresolvedLinks
+      this.app.metadataCache.unresolvedLinks,
+      forwardLinkSet
     );
     const resolvedTwoHopLinks = this.getTwohopLinks(
       activeFile,
-      this.app.metadataCache.resolvedLinks
+      this.app.metadataCache.resolvedLinks,
+      forwardLinkSet
     );
-    const [connectedLinks, newLinks] = await this.getLinks(
-      activeFile,
-      activeFileCache,
-      unresolvedTwoHopLinks.concat(resolvedTwoHopLinks)
+
+    const twoHopLinkSets = new Set<string>(
+      unresolvedTwoHopLinks
+        .concat(resolvedTwoHopLinks)
+        .map((it) => it.link.linkText)
     );
+
+    const [forwardConnectedLinks, newLinks] =
+      await this.splitLinksByConnectivity(forwardLinks, twoHopLinkSets);
+
+    const backwardLinks = this.getBackLinks(activeFile, forwardLinkSet);
 
     const tagLinksList = this.getTagLinksList(activeFile, activeFileCache);
 
     // insert links to the footer
     for (const element of this.getContainerElements(markdownView)) {
       await this.injectTwohopLinks(
-        connectedLinks,
+        forwardConnectedLinks,
         newLinks,
+        backwardLinks,
         unresolvedTwoHopLinks,
         resolvedTwoHopLinks,
         tagLinksList,
@@ -188,8 +203,9 @@ export default class TwohopLinksPlugin extends Plugin {
   }
 
   private async injectTwohopLinks(
-    connectedLinks: FileEntity[],
+    forwardConnectedLinks: FileEntity[],
     newLinks: FileEntity[],
+    backwardConnectedLinks: FileEntity[],
     unresolvedTwoHopLinks: TwohopLink[],
     resolvedTwoHopLinks: TwohopLink[],
     tagLinksList: TagLinks[],
@@ -202,8 +218,9 @@ export default class TwohopLinksPlugin extends Plugin {
       });
     ReactDOM.render(
       <TwohopLinksRootView
-        connectedLinks={connectedLinks}
+        forwardConnectedLinks={forwardConnectedLinks}
         newLinks={newLinks}
+        backwardConnectedLinks={backwardConnectedLinks}
         unresolvedTwoHopLinks={unresolvedTwoHopLinks}
         resolvedTwoHopLinks={resolvedTwoHopLinks}
         tagLinksList={tagLinksList}
@@ -238,7 +255,8 @@ export default class TwohopLinksPlugin extends Plugin {
 
   private getTwohopLinks(
     activeFile: TFile,
-    links: Record<string, Record<string, number>>
+    links: Record<string, Record<string, number>>,
+    forwardLinkSet: Set<string>
   ): TwohopLink[] {
     const twoHopLinks: Record<string, FileEntity[]> = {};
     // no unresolved links in this file
@@ -251,10 +269,15 @@ export default class TwohopLinksPlugin extends Plugin {
     }
     for (const k of Object.keys(unresolved)) {
       if (unresolved[k].length > 0) {
-        twoHopLinks[k] = unresolved[k].map((it) => {
-          const linkText = path2linkText(it);
-          return new FileEntity(activeFile.path, linkText);
-        });
+        twoHopLinks[k] = unresolved[k]
+          .map((it) => {
+            const linkText = path2linkText(it);
+            if (forwardLinkSet.has(linkText)) {
+              return null;
+            }
+            return new FileEntity(activeFile.path, linkText);
+          })
+          .filter((it) => it);
       }
     }
 
@@ -267,7 +290,8 @@ export default class TwohopLinksPlugin extends Plugin {
             )
           : null;
       })
-      .filter((it) => it);
+      .filter((it) => it)
+      .filter((it) => it.fileEntities.length > 0);
   }
 
   private aggregate2hopLinks(
@@ -296,25 +320,13 @@ export default class TwohopLinksPlugin extends Plugin {
     return result;
   }
 
-  private async getLinks(
-    activeFile: TFile,
-    activeFileCache: CachedMetadata,
-    twoHopLinks: TwohopLink[]
-  ): Promise<[FileEntity[], FileEntity[]]> {
-    const forwardLinks: FileEntity[] = this.getForwardLinks(
-      activeFile,
-      activeFileCache
-    );
-    const backlinks: FileEntity[] = this.getBackLinks(activeFile);
-
-    const links: FileEntity[] = forwardLinks.concat(backlinks);
-
+  private async splitLinksByConnectivity(
+    links: FileEntity[],
+    twoHopLinkSets: Set<string>
+  ) {
     const connectedLinks: FileEntity[] = [];
     const newLinks: FileEntity[] = [];
     const seen: Record<string, boolean> = {};
-    const twoHopLinkSets = new Set<string>(
-      twoHopLinks.map((it) => it.link.linkText)
-    );
     for (const link of links) {
       const key = link.key();
       if (seen[key]) {
@@ -354,7 +366,10 @@ export default class TwohopLinksPlugin extends Plugin {
     return [];
   }
 
-  private getBackLinks(activeFile: TFile): FileEntity[] {
+  private getBackLinks(
+    activeFile: TFile,
+    forwardLinkSet: Set<string>
+  ): FileEntity[] {
     const name = activeFile.path;
     const resolvedLinks: Record<string, Record<string, number>> =
       this.app.metadataCache.resolvedLinks;
@@ -363,6 +378,10 @@ export default class TwohopLinksPlugin extends Plugin {
       for (const dest of Object.keys(resolvedLinks[src])) {
         if (dest == name) {
           const linkText = path2linkText(src);
+          if (forwardLinkSet.has(linkText)) {
+            // ignore files, already listed in forward links.
+            continue;
+          }
           result.push(new FileEntity(activeFile.path, linkText));
         }
       }
