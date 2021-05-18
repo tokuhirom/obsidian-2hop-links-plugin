@@ -1,3 +1,5 @@
+import { removeBlockReference } from "../utils";
+
 export class FileEntity {
   public sourcePath: string;
   public linkText: string;
@@ -10,7 +12,8 @@ export class FileEntity {
     this.linkText = linkText;
   }
 
+  // Key to de-duplication.
   key(): string {
-    return this.linkText;
+    return removeBlockReference(this.linkText);
   }
 }

@@ -1,5 +1,6 @@
 import React from "react";
 import { FileEntity } from "../model/FileEntity";
+import { removeBlockReference } from "../utils";
 
 interface LinkViewProps {
   fileEntity: FileEntity;
@@ -39,7 +40,7 @@ export default class LinkView extends React.Component<
         style={{ width: this.props.boxWidth, height: this.props.boxHeight }}
       >
         <div className="twohop-links-box-title">
-          {this.props.fileEntity.linkText}
+          {removeBlockReference(this.props.fileEntity.linkText)}
         </div>
         <div className={"twohop-links-box-preview"}>{this.state.preview}</div>
       </div>
