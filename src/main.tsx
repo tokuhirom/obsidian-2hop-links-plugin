@@ -334,7 +334,12 @@ export default class TwohopLinksPlugin extends Plugin {
       }
       seen[key] = true;
 
-      if (link.sourcePath) {
+      if (
+        this.app.metadataCache.getFirstLinkpathDest(
+          removeBlockReference(link.linkText),
+          link.sourcePath
+        )
+      ) {
         connectedLinks.push(link);
       } else {
         // Exclude links, that are listed on two hop links
