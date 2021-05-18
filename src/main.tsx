@@ -5,7 +5,7 @@ import { FileEntity } from "./model/FileEntity";
 import { TwohopLink } from "./model/TwohopLink";
 import TwohopLinksRootView from "./ui/TwohopLinksRootView";
 import { TagLinks } from "./model/TagLinks";
-import { path2linkText } from "./utils";
+import { path2linkText, removeBlockReference } from "./utils";
 import {
   DEFAULT_SETTINGS,
   TwohopPluginSettings,
@@ -108,9 +108,7 @@ export default class TwohopLinksPlugin extends Plugin {
 
     // Aggregate forward links
     const forwardLinks = this.getForwardLinks(activeFile, activeFileCache);
-    const forwardLinkSet = new Set<string>(
-      forwardLinks.map((it) => it.linkText)
-    );
+    const forwardLinkSet = new Set<string>(forwardLinks.map((it) => it.key()));
 
     // Aggregate links
     const unresolvedTwoHopLinks = this.getTwohopLinks(
@@ -127,7 +125,7 @@ export default class TwohopLinksPlugin extends Plugin {
     const twoHopLinkSets = new Set<string>(
       unresolvedTwoHopLinks
         .concat(resolvedTwoHopLinks)
-        .map((it) => it.link.linkText)
+        .map((it) => it.link.key())
     );
 
     const [forwardConnectedLinks, newLinks] =
@@ -234,15 +232,17 @@ export default class TwohopLinksPlugin extends Plugin {
   }
 
   private async openFile(fileEntity: FileEntity): Promise<void> {
+    const linkText = removeBlockReference(fileEntity.linkText);
+
     console.debug(
-      `Open file: linkText='${fileEntity.linkText}', sourcePath='${fileEntity.sourcePath}'`
+      `Open file: linkText='${linkText}', sourcePath='${fileEntity.sourcePath}'`
     );
     const file = this.app.metadataCache.getFirstLinkpathDest(
-      fileEntity.linkText,
+      linkText,
       fileEntity.sourcePath
     );
     if (file == null) {
-      if (!confirm(`Create new file: ${fileEntity.linkText}?`)) {
+      if (!confirm(`Create new file: ${linkText}?`)) {
         console.log("Canceled!!");
         return;
       }
@@ -263,16 +263,16 @@ export default class TwohopLinksPlugin extends Plugin {
     if (links[activeFile.path] == null) {
       return [];
     }
-    const unresolved = this.aggregate2hopLinks(activeFile, links);
-    if (unresolved == null) {
+    const twohopLinkList = this.aggregate2hopLinks(activeFile, links);
+    if (twohopLinkList == null) {
       return [];
     }
-    for (const k of Object.keys(unresolved)) {
-      if (unresolved[k].length > 0) {
-        twoHopLinks[k] = unresolved[k]
+    for (const k of Object.keys(twohopLinkList)) {
+      if (twohopLinkList[k].length > 0) {
+        twoHopLinks[k] = twohopLinkList[k]
           .map((it) => {
             const linkText = path2linkText(it);
-            if (forwardLinkSet.has(linkText)) {
+            if (forwardLinkSet.has(removeBlockReference(linkText))) {
               return null;
             }
             return new FileEntity(activeFile.path, linkText);
@@ -338,7 +338,7 @@ export default class TwohopLinksPlugin extends Plugin {
         connectedLinks.push(link);
       } else {
         // Exclude links, that are listed on two hop links
-        if (!twoHopLinkSets.has(link.linkText)) {
+        if (!twoHopLinkSets.has(link.key())) {
           newLinks.push(link);
         }
       }
@@ -356,11 +356,18 @@ export default class TwohopLinksPlugin extends Plugin {
       console.log(`Missing activeFileCache '${activeFile.path}`);
     } else {
       if (activeFileCache.links != null) {
-        return activeFileCache.links.map((it) => {
-          const file = this.app.metadataCache.getFirstLinkpathDest(it.link, "");
-          const path = file != null ? file.path : null; // null if the file doesn't created
-          return new FileEntity(path, it.link);
-        });
+        const seen = new Set<string>();
+        return activeFileCache.links
+          .map((it) => {
+            const key = removeBlockReference(it.link);
+            if (!seen.has(key)) {
+              seen.add(key);
+              return new FileEntity(activeFile.path, it.link);
+            } else {
+              return null;
+            }
+          })
+          .filter((it) => it);
       }
     }
     return [];
@@ -399,8 +406,14 @@ export default class TwohopLinksPlugin extends Plugin {
       return "";
     }
 
+    const linkText = removeBlockReference(fileEntity.linkText);
+    console.debug(
+      `readPreview: getFirstLinkpathDest: ${linkText}, fileEntity.linkText=${fileEntity.linkText}
+      sourcePath=${fileEntity.sourcePath}`
+    );
+
     const file = this.app.metadataCache.getFirstLinkpathDest(
-      fileEntity.linkText,
+      linkText,
       fileEntity.sourcePath
     );
     if (file == null) {
