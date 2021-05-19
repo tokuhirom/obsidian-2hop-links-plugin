@@ -33,6 +33,10 @@ This plugin was reviewed by [lishid](https://github.com/obsidianmd/obsidian-rele
 
 ## Changes
 
+- 0.5.0 (2021-05-19)
+  - Cannot split new files [#22](https://github.com/tokuhirom/obsidian-2hop-links-plugin/issues/22)
+  - can not recognize block link correcttly [#20](https://github.com/tokuhirom/obsidian-2hop-links-plugin/issues/20)
+    Reported by gh16683170++
 - 0.4.0 (2021-05-17)
   - no changes
 - 0.3.0 (2021-05-17)
