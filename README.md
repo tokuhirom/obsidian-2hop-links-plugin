@@ -33,7 +33,7 @@ This plugin was reviewed by [lishid](https://github.com/obsidianmd/obsidian-rele
 
 ## Changes
 
-- 0.5.0 (2021-05-20)
+- 0.6.0 (2021-05-20)
   - Experimental feature: show two hop links on the top of pane. [#25](https://github.com/tokuhirom/obsidian-2hop-links-plugin/issues/25)
     (You can enable this feature by the setting panel)
     Requested by danraymond++
