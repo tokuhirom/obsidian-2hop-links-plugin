@@ -2,11 +2,13 @@ import { App, PluginSettingTab, Setting } from "obsidian";
 import TwohopLinksPlugin from "./main";
 
 export interface TwohopPluginSettings {
+  putOnTop: boolean;
   boxWidth: string;
   boxHeight: string;
 }
 
 export const DEFAULT_SETTINGS: TwohopPluginSettings = {
+  putOnTop: false,
   boxWidth: "162px",
   boxHeight: "178px",
 };
@@ -49,5 +51,19 @@ export class TwohopSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
+
+    new Setting(containerEl)
+      .setName("Put 2hop links to top of the pane(Experimental).")
+      .setDesc(
+        "Known bugs: This configuration doesn't work with the 'Embedded Note Titles' plugin."
+      )
+      .addToggle((toggle) => {
+        toggle
+          .setValue(this.plugin.settings.putOnTop)
+          .onChange(async (value) => {
+            this.plugin.settings.putOnTop = value;
+            await this.plugin.saveSettings();
+          });
+      });
   }
 }

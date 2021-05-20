@@ -136,7 +136,7 @@ export default class TwohopLinksPlugin extends Plugin {
     const tagLinksList = this.getTagLinksList(activeFile, activeFileCache);
 
     // insert links to the footer
-    for (const element of this.getContainerElements(markdownView)) {
+    for (const container of this.getContainerElements(markdownView)) {
       await this.injectTwohopLinks(
         forwardConnectedLinks,
         newLinks,
@@ -144,19 +144,51 @@ export default class TwohopLinksPlugin extends Plugin {
         unresolvedTwoHopLinks,
         resolvedTwoHopLinks,
         tagLinksList,
-        element
+        container
       );
     }
   }
 
-  getContainerElements(markdownView: MarkdownView): Element[] {
-    const markdownEditingEl = markdownView.containerEl.querySelector(
-      ".markdown-source-view .CodeMirror-lines"
-    );
-    const previewEl = markdownView.containerEl.querySelector(
-      ".markdown-preview-view"
-    );
-    return [markdownEditingEl, previewEl];
+  private getContainerElements(markdownView: MarkdownView): Element[] {
+    if (this.settings.putOnTop) {
+      const elements = markdownView.containerEl.querySelectorAll(
+        ".markdown-source-view .CodeMirror-scroll , .markdown-preview-view"
+      );
+      console.debug(`getContainerElements: ${elements.length}`);
+
+      const containers: Element[] = [];
+      for (let i = 0; i < elements.length; i++) {
+        const el = elements.item(i);
+        const container: Element = ((): Element => {
+          const e = el.querySelector("." + CONTAINER_CLASS);
+          if (e) {
+            return e;
+          } else {
+            const c = document.createElement("div");
+            c.className = CONTAINER_CLASS;
+            el.insertBefore(c, el.firstChild);
+            return c;
+          }
+        })();
+        containers.push(container);
+      }
+      console.debug(`Return container elements: ${containers.length}`);
+      return containers;
+    } else {
+      const elements = markdownView.containerEl.querySelectorAll(
+        ".markdown-source-view .CodeMirror-lines, .markdown-preview-view"
+      );
+
+      const containers: Element[] = [];
+      for (let i = 0; i < elements.length; i++) {
+        const el = elements.item(i);
+        const container =
+          el.querySelector("." + CONTAINER_CLASS) ||
+          el.createDiv({ cls: CONTAINER_CLASS });
+        containers.push(container);
+      }
+      return containers;
+    }
   }
 
   getTagLinksList(
@@ -207,13 +239,8 @@ export default class TwohopLinksPlugin extends Plugin {
     unresolvedTwoHopLinks: TwohopLink[],
     resolvedTwoHopLinks: TwohopLink[],
     tagLinksList: TagLinks[],
-    el: Element
+    container: Element
   ) {
-    const container: HTMLElement =
-      el.querySelector("." + CONTAINER_CLASS) ||
-      el.createDiv({
-        cls: CONTAINER_CLASS,
-      });
     ReactDOM.render(
       <TwohopLinksRootView
         forwardConnectedLinks={forwardConnectedLinks}
