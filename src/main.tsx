@@ -459,6 +459,25 @@ export default class TwohopLinksPlugin extends Plugin {
       return "";
     }
     const content = await this.app.vault.read(file);
+
+    if (this.settings.showImage) {
+      const m = content.match(/!\[\[([^\]]+.(?:png|bmp|jpg))\]\]/);
+      if (m) {
+        const img = m[1];
+        console.debug(`Found image: ${img}`);
+        const file = this.app.metadataCache.getFirstLinkpathDest(
+          img,
+          fileEntity.sourcePath
+        );
+        console.debug(`Found image: ${img} = file=${file}`);
+        if (file) {
+          const resourcePath = this.app.vault.getResourcePath(file);
+          console.debug(`Found image: ${img} resourcePath=${resourcePath}`);
+          return resourcePath;
+        }
+      }
+    }
+
     // Remove YFM
     const lines = content.replace(/.*^---$/gms, "").split(/\n/);
     return lines

@@ -31,6 +31,9 @@
   color: #224433;
   font-size: 70%;
 }
+.twohop-links-box img {
+  margin: auto;
+}
 
 /* connected links */
 .twohop-links-forward-links .twohop-links-connected-links-header {
