@@ -5,12 +5,14 @@ export interface TwohopPluginSettings {
   putOnTop: boolean;
   boxWidth: string;
   boxHeight: string;
+  showImage: boolean;
 }
 
 export const DEFAULT_SETTINGS: TwohopPluginSettings = {
   putOnTop: false,
   boxWidth: "162px",
   boxHeight: "178px",
+  showImage: true,
 };
 
 export class TwohopSettingTab extends PluginSettingTab {
@@ -62,6 +64,17 @@ export class TwohopSettingTab extends PluginSettingTab {
           .setValue(this.plugin.settings.putOnTop)
           .onChange(async (value) => {
             this.plugin.settings.putOnTop = value;
+            await this.plugin.saveSettings();
+          });
+      });
+
+    new Setting(containerEl)
+      .setName("Show image in the 2hop links")
+      .addToggle((toggle) => {
+        toggle
+          .setValue(this.plugin.settings.showImage)
+          .onChange(async (value) => {
+            this.plugin.settings.showImage = value;
             await this.plugin.saveSettings();
           });
       });
