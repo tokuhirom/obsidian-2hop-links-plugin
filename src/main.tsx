@@ -176,7 +176,7 @@ export default class TwohopLinksPlugin extends Plugin {
       return containers;
     } else {
       const elements = markdownView.containerEl.querySelectorAll(
-        ".markdown-source-view .CodeMirror-lines, .markdown-preview-view"
+        ".markdown-source-view .CodeMirror-scroll , .markdown-preview-view , .markdown-source-view .cm-contentContainer"
       );
 
       const containers: Element[] = [];
