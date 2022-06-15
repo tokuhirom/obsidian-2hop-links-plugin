@@ -410,8 +410,8 @@ export default class TwohopLinksPlugin extends Plugin {
     forwardLinkSet: Set<string>
   ): FileEntity[] {
     const name = activeFile.path;
-    const resolvedLinks: Record<string, Record<string, number>> =
-      this.app.metadataCache.resolvedLinks;
+    const resolvedLinks: Record<string, Record<string, number>> = this.app
+      .metadataCache.resolvedLinks;
     const result: FileEntity[] = [];
     for (const src of Object.keys(resolvedLinks)) {
       for (const dest of Object.keys(resolvedLinks[src])) {
